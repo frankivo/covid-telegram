@@ -1,6 +1,6 @@
 package com.github.frankivo
 
-object CovidTelegram {
+object CovidBot {
 
   def main(args: Array[String]): Unit = {
     Telegram.sendMessage("blaat")
