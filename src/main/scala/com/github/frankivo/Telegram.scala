@@ -3,7 +3,7 @@ package com.github.frankivo
 import com.pengrad.telegrambot.TelegramBot
 import com.pengrad.telegrambot.request.SendMessage
 
-object CovidBot {
+object Telegram {
 
   val bot = new TelegramBot(apiKey)
 
