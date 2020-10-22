@@ -15,7 +15,6 @@ class Telegram(stats: ActorRef) extends Actor {
   bot.setUpdatesListener(updates => handleUpdates(updates.asScala.toSeq))
 
   private def handleUpdates(updates: Seq[Update]): Int = {
-    println(updates)
     val commands = updates
       .flatMap(u => Some(u.message))
       .filter(u => u.entities != null)
