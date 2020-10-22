@@ -1,16 +1,16 @@
 package com.github.frankivo
 
-import scala.concurrent.duration.DurationInt
+import akka.actor.{ActorSystem, Props}
 
 object CovidBot {
 
   def main(args: Array[String]): Unit = {
-    Telegram.sendMessage("blaat")
+    val akka = ActorSystem()
 
-    while (true) {
-      CovidStats.getData()
-      Thread.sleep(30.minutes.toMillis)
-    }
+    val stats = akka.actorOf(Props(new CovidStats))
+
+    val telegram = akka.actorOf(Props(new Telegram(stats)))
+    telegram ! TelegramMessage("Hello, World!")
   }
 
 }
