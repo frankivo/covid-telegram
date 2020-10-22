@@ -1,11 +1,20 @@
 package com.github.frankivo
 
-import com.pengrad.telegrambot.TelegramBot
+import com.pengrad.telegrambot.model.Update
 import com.pengrad.telegrambot.request.SendMessage
+import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
 
-object Telegram {
+import scala.jdk.CollectionConverters._
 
+class Telegram {
   val bot = new TelegramBot(apiKey)
+
+  bot.setUpdatesListener(updates => handleUpdates(updates.asScala.toSeq))
+
+  private def handleUpdates(u: Seq[Update]): Int = {
+    println(u)
+    UpdatesListener.CONFIRMED_UPDATES_ALL
+  }
 
   def chatId: Long = sys.env("TELEGRAM_CHATID").toLong
 
