@@ -5,6 +5,7 @@ import java.time.LocalDate
 import akka.actor.Actor
 import play.api.libs.json.{JsArray, JsLookupResult, JsNumber, JsString, JsValue, Json}
 import scalaj.http.Http
+import CovidRecordHelper._
 
 case class UpdateAll()
 
@@ -35,10 +36,8 @@ class CovidStats extends Actor {
     val json = download
     val filtered = filterCountry(json)
     val mapped = filtered.map(j => CovidRecord(getDate(j \ "Date"), getLong(j \ "Confirmed")))
-      .sortBy(j => j.date)
-    val merged = Seq(CovidRecord(mapped.head.date.minusDays(1), 0)) ++ mapped
-
-    merged.foreach(println)
+    val counts = mapped.getDailyCounts
+    println(counts.last)
 
     mapped.length
   }
