@@ -1,6 +1,7 @@
 package com.github.frankivo
 
 import java.sql.{Connection, Date, DriverManager}
+import java.time.LocalDate
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
@@ -33,7 +34,7 @@ class Database {
 
     val data = new ListBuffer[CovidRecord]()
     while (result.next) {
-      val date = Date.valueOf(result.getString("date"))
+      val date = LocalDate.parse(result.getString("date"))
       val count = result.getLong("count")
       data += CovidRecord(date, count)
     }

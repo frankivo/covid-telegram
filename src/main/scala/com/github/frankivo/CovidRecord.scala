@@ -1,5 +1,5 @@
 package com.github.frankivo
 
-import java.sql.Date
+import java.time.LocalDate
 
-case class CovidRecord(date: Date, count: Long)
+case class CovidRecord(date: LocalDate, count: Long)
