@@ -11,8 +11,8 @@ class Telegram {
 
   bot.setUpdatesListener(updates => handleUpdates(updates.asScala.toSeq))
 
-  private def handleUpdates(u: Seq[Update]): Int = {
-    println(u)
+  private def handleUpdates(updates: Seq[Update]): Int = {
+    println(updates)
     UpdatesListener.CONFIRMED_UPDATES_ALL
   }
 
