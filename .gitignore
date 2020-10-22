@@ -1,3 +1,9 @@
+# SBT
 .bsp
-.idea
 target/
+
+# IntelliJ
+.idea
+
+# Project
+covid.db

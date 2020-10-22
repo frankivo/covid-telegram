@@ -1,4 +1,4 @@
 create table if not exists "daily" (
-   "date" date,
+   "date" string,
    "count" long
 )

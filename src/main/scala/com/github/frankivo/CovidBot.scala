@@ -16,8 +16,7 @@ object CovidBot {
 //    }
 
     val db = new Database
-//    db.insert(CovidRecord(Date.valueOf(LocalDate.now), 1337))
-db.getDate()
+    db.insert(CovidRecord(Date.valueOf(LocalDate.now), 1337))
     db.getAllData.foreach(println)
     println("ok")
   }
