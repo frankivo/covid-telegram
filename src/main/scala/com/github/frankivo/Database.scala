@@ -15,27 +15,17 @@ class Database {
 
   private def sqlFromFile(filename: String): String = Source.fromResource(s"sql/${filename}.sql").getLines.mkString
 
-  private def createDb(): Unit = {
+  private def update(sql: String) :Unit = {
     val stmt = handle.createStatement
-
-    stmt.executeUpdate(sqlFromFile("createTables"))
-
+    stmt.executeUpdate(sql)
     stmt.close()
   }
+
+  private def createDb(): Unit = update(sqlFromFile("createTables"))
 
   def insert(row: CovidRecord): Unit = {
-    val stmt = handle.createStatement
-
-    stmt.executeUpdate(sqlFromFile("insertRecord").format(row.date, row.count))
-    stmt.close()
-  }
-
-  def getDate(): Unit = {
-    val stmt = handle.createStatement
-    val result = stmt.executeQuery("select cast(current_date as string)")
-    while (result.next) {
-      println(result.getString(1))
-    }
+    val sql = sqlFromFile("insertRecord").format(row.date, row.count)
+    update(sql)
   }
 
   def getAllData: Seq[CovidRecord] = {
