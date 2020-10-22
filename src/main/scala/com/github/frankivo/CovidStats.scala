@@ -3,25 +3,16 @@ package com.github.frankivo
 import java.time.LocalDate
 
 import akka.actor.Actor
-import play.api.libs.json.{JsArray, JsString, JsValue, Json}
+import play.api.libs.json.{JsArray, JsLookupResult, JsNumber, JsString, JsValue, Json}
 import scalaj.http.Http
 
 case class UpdateAll()
 
 class CovidStats extends Actor {
-  def getData(): Unit = {
-    val data = download
-    val json = toJson(data)
-
-    println(updatedToday(json))
-
-    val nl = filterCountry(json)
-    println(nl.length)
+  def download: JsValue = {
+    val data = Http("https://api.covid19api.com/dayone/country/netherlands").asString.body
+    Json.parse(data)
   }
-
-  def download: String = Http("https://api.covid19api.com/dayone/country/netherlands").asString.body
-
-  def toJson(raw: String): JsValue = Json.parse(raw)
 
   def yesterday: String = s"${LocalDate.now.minusDays(1).toString}T00:00:00Z"
 
@@ -40,7 +31,23 @@ class CovidStats extends Actor {
       .toSeq
   }
 
+  def backFill(): Int = {
+    val json = download
+    val filtered = filterCountry(json)
+    val mapped = filtered.map(j => CovidRecord(getDate(j \ "Date"), getLong(j \ "Confirmed")))
+      .sortBy(j => j.date)
+    val merged = Seq(CovidRecord(mapped.head.date.minusDays(1), 0)) ++ mapped
+
+    merged.foreach(println)
+
+    mapped.length
+  }
+
+  def getDate(field: JsLookupResult): LocalDate = LocalDate.parse(field.as[JsString].value.substring(0, 10))
+
+  def getLong(field: JsLookupResult): Long = field.as[JsNumber].value.toLong
+
   override def receive: Receive = {
-    case _: UpdateAll => println("update it all")
+    case _: UpdateAll => sender ! TelegramMessage("Got %s records!".format(backFill()))
   }
 }
