@@ -2,14 +2,14 @@ package com.github.frankivo
 
 import java.time.LocalDate
 
-import akka.actor.Actor
-import play.api.libs.json.{JsArray, JsLookupResult, JsNumber, JsString, JsValue, Json}
+import akka.actor.{Actor, ActorRef}
+import com.github.frankivo.CovidRecordHelper._
+import play.api.libs.json._
 import scalaj.http.Http
-import CovidRecordHelper._
 
 case class UpdateAll()
 
-class CovidStats extends Actor {
+class CovidStats(database: ActorRef) extends Actor {
   def download: JsValue = {
     val data = Http("https://api.covid19api.com/dayone/country/netherlands").asString.body
     Json.parse(data)
@@ -37,7 +37,8 @@ class CovidStats extends Actor {
     val filtered = filterCountry(json)
     val mapped = filtered.map(j => CovidRecord(getDate(j \ "Date"), getLong(j \ "Confirmed")))
     val counts = mapped.getDailyCounts
-    println(counts.last)
+
+    database ! InsertRecords(counts)
 
     mapped.length
   }
