@@ -3,10 +3,13 @@ package com.github.frankivo
 import java.time.LocalDate
 
 import akka.actor.{Actor, ActorRef}
+import com.github.frankivo
 import com.github.frankivo.CovidRecordHelper._
 import play.api.libs.json._
 import scalaj.http.Http
 
+case class GetLatest()
+case class GetToday()
 case class UpdateAll()
 
 class CovidStats(database: ActorRef) extends Actor {
@@ -32,7 +35,16 @@ class CovidStats(database: ActorRef) extends Actor {
       .toSeq
   }
 
-  def backFill(): Int = {
+  def getToday() : Unit = {
+val data: Unit = database GetDayCount(LocalDate.now)
+
+  }
+
+  def displayCount() :Unit = {
+
+  }
+
+  def backFill(): TelegramMessage = {
     val json = download
     val filtered = filterCountry(json)
     val mapped = filtered.map(j => CovidRecord(getDate(j \ "Date"), getLong(j \ "Confirmed")))
@@ -40,7 +52,7 @@ class CovidStats(database: ActorRef) extends Actor {
 
     database ! InsertRecords(counts)
 
-    mapped.length
+    TelegramMessage("Got %s records!".format(mapped.length))
   }
 
   def getDate(field: JsLookupResult): LocalDate = LocalDate.parse(field.as[JsString].value.substring(0, 10))
@@ -48,6 +60,8 @@ class CovidStats(database: ActorRef) extends Actor {
   def getLong(field: JsLookupResult): Long = field.as[JsNumber].value.toLong
 
   override def receive: Receive = {
-    case _: UpdateAll => sender ! TelegramMessage("Got %s records!".format(backFill()))
+    case _: GetToday => getToday()
+    case _: UpdateAll => sender ! backFill()
+    case c : Option[CovidRecord] => 
   }
 }

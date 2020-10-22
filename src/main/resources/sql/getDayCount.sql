@@ -1,0 +1,1 @@
+select "count" from "daily" where "date" = '%s'

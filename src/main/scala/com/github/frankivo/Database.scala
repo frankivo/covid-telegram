@@ -10,6 +10,7 @@ import scala.io.Source
 
 // Examples from https://www.tutorialspoint.com/sqlite/sqlite_java.htm
 
+case class GetDayCount(date: LocalDate)
 case class InsertRecords(records: Seq[CovidRecord])
 
 class Database extends Actor {
@@ -47,7 +48,20 @@ class Database extends Actor {
     data.toSeq
   }
 
+  def getDayCount(date:LocalDate): Option[CovidRecord] = {
+    val stmt = handle.createStatement
+    val result = stmt.executeQuery(sqlFromFile("getDayCount"))
+
+    val hasData = result.next()
+
+    stmt.close()
+
+    if (hasData) Some(CovidRecord(date, result.getLong("count")))
+    else None
+  }
+
   override def receive: Receive = {
+    case d: GetDayCount => sender ! getDayCount(d.date)
     case r: InsertRecords => r.records.foreach(insert)
   }
 }

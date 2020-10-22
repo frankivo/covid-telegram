@@ -29,6 +29,7 @@ class Telegram(stats: ActorRef) extends Actor {
     commands
       .foreach {
         case "/hi" => self ! TelegramMessage("hi!")
+        case "/today" => stats ! GetToday()
         case "/updateAll" => stats ! UpdateAll()
         case e => self ! TelegramMessage(s"Unknown command: ${e}")
       }
