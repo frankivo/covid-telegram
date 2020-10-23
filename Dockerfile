@@ -12,4 +12,4 @@ RUN sbt assembly
 
 FROM openjdk:8-alpine
 COPY --from=compiler /root/target/scala-2.13/*jar /root
-RUN java -jar /root/*jar
+CMD java -jar /root/*jar
