@@ -61,7 +61,7 @@ class CovidStats extends Actor {
     val counts = mapped.getDailyCounts
 
     db.clearDaily()
-    counts.foreach(db.insertCovidRecord)
+    db.insertDailyCounts(counts: _*)
 
     TelegramMessage("Got %s records!".format(mapped.length))
   }

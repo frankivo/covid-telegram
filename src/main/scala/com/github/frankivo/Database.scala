@@ -7,11 +7,11 @@ import scala.io.Source
 
 // Examples from https://www.tutorialspoint.com/sqlite/sqlite_java.htm
 
-class Database {
+class Database(filename: String = "covid.db") {
   val handle: Connection = open
   createDb()
 
-  private def open: Connection = DriverManager.getConnection("jdbc:sqlite:covid.db")
+  private def open: Connection = DriverManager.getConnection(s"jdbc:sqlite:$filename")
 
   private def sqlFromFile(filename: String): String = Source.fromResource(s"sql/$filename.sql").getLines().mkString
 
@@ -25,8 +25,10 @@ class Database {
 
   def clearDaily(): Unit = update(sqlFromFile("clearDaily"))
 
-  def insertCovidRecord(row: CovidRecord): Unit = {
-    update(sqlFromFile("insertRecord").format(row.date.toString, row.count))
+  def insertDailyCounts(rows: CovidRecord*): Unit = {
+    val values = rows.map(r => s"""("${r.date}", ${r.count})""").mkString(", ")
+    val sql = sqlFromFile("insertDailyCounts").format(values)
+    update(sql)
   }
 
   def getDayCount(date: LocalDate): Option[CovidRecord] = {
@@ -40,4 +42,5 @@ class Database {
 
     rec
   }
+
 }
