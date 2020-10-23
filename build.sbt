@@ -12,3 +12,5 @@ libraryDependencies += "org.xerial" % "sqlite-jdbc" % "3.32.3.2"
 
 libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.2" % "test"
 testFrameworks += new TestFramework("utest.runner.Framework")
+
+scalacOptions := Seq("-unchecked", "-deprecation")
