@@ -13,7 +13,7 @@ class Database {
 
   private def open: Connection = DriverManager.getConnection("jdbc:sqlite:covid.db")
 
-  private def sqlFromFile(filename: String): String = Source.fromResource(s"sql/${filename}.sql").getLines.mkString
+  private def sqlFromFile(filename: String): String = Source.fromResource(s"sql/$filename.sql").getLines().mkString
 
   private def update(sql: String): Unit = {
     val stmt = handle.createStatement
@@ -29,7 +29,7 @@ class Database {
     update(sqlFromFile("insertRecord").format(row.date.toString, row.count))
   }
 
-  def getDayCount(date: LocalDate = LocalDate.now): Option[CovidRecord] = {
+  def getDayCount(date: LocalDate): Option[CovidRecord] = {
     val stmt = handle.createStatement
     val result = stmt.executeQuery(sqlFromFile("getDayCount"))
 
