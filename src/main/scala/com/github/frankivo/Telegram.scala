@@ -6,9 +6,11 @@ import com.pengrad.telegrambot.request.SendMessage
 import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
 
 import scala.jdk.CollectionConverters._
+import scala.util.Try
 
 case class TelegramMessage(body: String)
-case class Command(cmd: String, parameter: String)
+
+case class Command(cmd: String, parameter: Option[String])
 
 class Telegram(stats: ActorRef) extends Actor {
   val bot = new TelegramBot(apiKey)
@@ -20,20 +22,27 @@ class Telegram(stats: ActorRef) extends Actor {
       .flatMap(u => Some(u.message))
       .filter(u => u.entities != null)
       .filter(u => u.entities.exists(e => e.`type`.eq(MessageEntity.Type.bot_command)))
-      .map(u => u.text)
+      .map(u => {
+        val split = u.text.split(" ")
+        Command(split.head, Try(split(1)).toOption)
+      })
     handleCommands(commands)
 
     UpdatesListener.CONFIRMED_UPDATES_ALL
   }
 
-  private def handleCommands(commands: Seq[String]): Unit = {
+  private def handleCommands(commands: Seq[Command ]): Unit = {
     commands
-      .foreach {
-        case "/hi" => self ! TelegramMessage("Hi!")
-        case "/today" => stats ! GetCasesForDay()
-        case "/refresh" => stats ! UpdateAll()
-        case e => self ! TelegramMessage(s"Unknown command: $e")
-      }
+      .foreach(c => {
+        c.cmd match {
+          case "/hi" => self ! TelegramMessage("Hi!")
+          case "/refresh" => stats ! UpdateAll()
+          case "/date" => stats ! GetCasesForDay(c.parameter)
+          case "/today" => stats ! GetCasesForDay()
+
+          case e => self ! TelegramMessage(s"Unknown command: $e")
+        }
+      })
   }
 
   def chatId: Long = sys.env("TELEGRAM_CHATID").toLong

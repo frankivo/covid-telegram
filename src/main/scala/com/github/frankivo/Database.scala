@@ -31,13 +31,13 @@ class Database {
 
   def getDayCount(date: LocalDate): Option[CovidRecord] = {
     val stmt = handle.createStatement
-    val result = stmt.executeQuery(sqlFromFile("getDayCount"))
+    val sql = sqlFromFile("getDayCount").format(date.toString)
+    val result = stmt.executeQuery(sql)
 
     val hasData = result.next()
-
+    val rec = if (hasData) Some(CovidRecord(date, result.getLong("count"))) else None
     stmt.close()
 
-    if (hasData) Some(CovidRecord(date, result.getLong("count")))
-    else None
+    rec
   }
 }
