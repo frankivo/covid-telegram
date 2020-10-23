@@ -28,10 +28,10 @@ class Telegram(stats: ActorRef) extends Actor {
   private def handleCommands(commands: Seq[String]): Unit = {
     commands
       .foreach {
-        case "/hi" => self ! TelegramMessage("hi!")
+        case "/hi" => self ! TelegramMessage("Hi!")
         case "/today" => stats ! GetToday()
-        case "/updateAll" => stats ! UpdateAll()
-        case e => self ! TelegramMessage(s"Unknown command: ${e}")
+        case "/refresh" => stats ! UpdateAll()
+        case e => self ! TelegramMessage(s"Unknown command: $e")
       }
   }
 

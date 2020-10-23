@@ -7,8 +7,7 @@ object CovidBot {
   def main(args: Array[String]): Unit = {
     val akka = ActorSystem()
 
-    val db = akka.actorOf(Props(new Database))
-    val stats = akka.actorOf(Props(new CovidStats(db)))
+    val stats = akka.actorOf(Props(new CovidStats))
 
     val telegram = akka.actorOf(Props(new Telegram(stats)))
     telegram ! TelegramMessage("Hello, World!")

@@ -2,17 +2,19 @@ package com.github.frankivo
 
 import java.time.LocalDate
 
-import akka.actor.{Actor, ActorRef}
-import com.github.frankivo
+import akka.actor.Actor
 import com.github.frankivo.CovidRecordHelper._
 import play.api.libs.json._
 import scalaj.http.Http
 
-case class GetLatest()
 case class GetToday()
+
 case class UpdateAll()
 
-class CovidStats(database: ActorRef) extends Actor {
+class CovidStats extends Actor {
+
+  val db: Database = new Database
+
   def download: JsValue = {
     val data = Http("https://api.covid19api.com/dayone/country/netherlands").asString.body
     Json.parse(data)
@@ -35,13 +37,14 @@ class CovidStats(database: ActorRef) extends Actor {
       .toSeq
   }
 
-  def getToday() : Unit = {
-val data: Unit = database GetDayCount(LocalDate.now)
+  def getToday: TelegramMessage = {
+    val data = db.getDayCount()
 
-  }
-
-  def displayCount() :Unit = {
-
+    if (data.isEmpty) TelegramMessage("No data found")
+    else {
+      val rec = data.get
+      TelegramMessage(s"Casses for ${rec.date}: ${rec.count}")
+    }
   }
 
   def backFill(): TelegramMessage = {
@@ -50,7 +53,8 @@ val data: Unit = database GetDayCount(LocalDate.now)
     val mapped = filtered.map(j => CovidRecord(getDate(j \ "Date"), getLong(j \ "Confirmed")))
     val counts = mapped.getDailyCounts
 
-    database ! InsertRecords(counts)
+    db.clearDaily()
+    counts.foreach(db.insertCovidRecord)
 
     TelegramMessage("Got %s records!".format(mapped.length))
   }
@@ -60,8 +64,10 @@ val data: Unit = database GetDayCount(LocalDate.now)
   def getLong(field: JsLookupResult): Long = field.as[JsNumber].value.toLong
 
   override def receive: Receive = {
-    case _: GetToday => getToday()
-    case _: UpdateAll => sender ! backFill()
-    case c : Option[CovidRecord] => 
+    case _: GetToday => {
+      val data = getToday
+      sender() ! data
+    }
+    case _: UpdateAll => sender() ! backFill()
   }
 }
