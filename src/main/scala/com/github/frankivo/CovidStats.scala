@@ -22,15 +22,6 @@ class CovidStats extends Actor {
     Json.parse(data)
   }
 
-  def yesterday: String = s"${LocalDate.now.minusDays(1).toString}T00:00:00Z"
-
-  def updatedToday(json: JsValue): Boolean = {
-    json
-      .as[JsArray]
-      .value
-      .exists(j => (j \ "Date").as[JsString].value == yesterday)
-  }
-
   def filterCountry(json: JsValue): Seq[JsValue] = {
     json
       .as[JsArray]
@@ -40,7 +31,7 @@ class CovidStats extends Actor {
   }
 
   def getDayCount(date: Option[String]): TelegramMessage = {
-    val parsedDate = if (date.isEmpty) LocalDate.now() else {
+    val parsedDate = if (date.isEmpty) LocalDate.now().minusDays(1) else {
       val parsed = Try(LocalDate.parse(date.get)).toOption
       if (parsed.isEmpty) return TelegramMessage(s"Cannot parse date '${date.get}'")
       parsed.get

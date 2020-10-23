@@ -38,7 +38,7 @@ class Telegram(stats: ActorRef) extends Actor {
           case "/hi" => self ! TelegramMessage("Hi!")
           case "/refresh" => stats ! UpdateAll()
           case "/date" => stats ! GetCasesForDay(c.parameter)
-          case "/today" => stats ! GetCasesForDay()
+          case "/latest" => stats ! GetCasesForDay()
 
           case e => self ! TelegramMessage(s"Unknown command: $e")
         }
