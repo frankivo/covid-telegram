@@ -31,8 +31,6 @@ class Database(filename: String = "covid.db") {
     update(sql)
   }
 
-  def insertCovidRecords(rows: CovidRecord*): Unit = rows.foreach(insertCovidRecord)
-
   def getDayCount(date: LocalDate): Option[CovidRecord] = {
     val stmt = handle.createStatement
     val sql = sqlFromFile("getDayCount").format(date.toString)
