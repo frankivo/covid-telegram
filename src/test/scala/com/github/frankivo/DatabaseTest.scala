@@ -29,7 +29,7 @@ object DatabaseTest extends TestSuite {
     }
 
     test("record can be inserted") {
-      db.insertDailyCounts(CovidRecord(LocalDate.now, 42))
+      db.insertCovidRecord(CovidRecord(LocalDate.now, 42))
       count("daily") ==> 1
     }
 
@@ -40,15 +40,13 @@ object DatabaseTest extends TestSuite {
         CovidRecord(LocalDate.parse("2020-10-03"), 30),
         CovidRecord(LocalDate.parse("2020-10-04"), 40),
       )
-      db.clearDaily()
-      db.insertDailyCounts(records: _*)
-      count("daily") ==> 4
+      db.insertCovidRecords(records: _*)
       val result = db.getDayCount(LocalDate.parse("2020-10-03"))
       result.get.count ==> 30
     }
 
     test("table can be purged") {
-      db.insertDailyCounts(CovidRecord(LocalDate.now, 42))
+      db.insertCovidRecord(CovidRecord(LocalDate.now, 42))
       db.clearDaily()
       count("daily") ==> 0
     }
