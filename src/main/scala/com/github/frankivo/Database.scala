@@ -25,11 +25,11 @@ class Database(filename: String = "covid.db") {
 
   def clearDaily(): Unit = update(sqlFromFile("clearDaily"))
 
-  def insertCovidRecord(row: CovidRecord): Unit = {
-    update(sqlFromFile("insertRecord").format(row.date.toString, row.count))
+  def insertDailyCounts(rows: CovidRecord*): Unit = {
+    val values = rows.map(r => s"""("${r.date}", ${r.count})""").mkString(", ")
+    val sql = sqlFromFile("insertDailyCounts").format(values)
+    update(sql)
   }
-
-  def insertCovidRecords(rows: CovidRecord*): Unit = rows.foreach(insertCovidRecord)
 
   def getDayCount(date: LocalDate): Option[CovidRecord] = {
     val stmt = handle.createStatement
