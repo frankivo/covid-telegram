@@ -8,6 +8,7 @@ import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
 import scala.jdk.CollectionConverters._
 
 case class TelegramMessage(body: String)
+case class Command(cmd: String, parameter: String)
 
 class Telegram(stats: ActorRef) extends Actor {
   val bot = new TelegramBot(apiKey)
@@ -29,7 +30,7 @@ class Telegram(stats: ActorRef) extends Actor {
     commands
       .foreach {
         case "/hi" => self ! TelegramMessage("Hi!")
-        case "/today" => stats ! GetToday()
+        case "/today" => stats ! GetCasesForDay()
         case "/refresh" => stats ! UpdateAll()
         case e => self ! TelegramMessage(s"Unknown command: $e")
       }

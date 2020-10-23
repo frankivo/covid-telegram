@@ -7,7 +7,7 @@ import com.github.frankivo.CovidRecordHelper._
 import play.api.libs.json._
 import scalaj.http.Http
 
-case class GetToday()
+case class GetCasesForDay(date: LocalDate = LocalDate.now)
 
 case class UpdateAll()
 
@@ -37,8 +37,8 @@ class CovidStats extends Actor {
       .toSeq
   }
 
-  def getToday: TelegramMessage = {
-    val data = db.getDayCount()
+  def getDayCount(date: LocalDate): TelegramMessage = {
+    val data = db.getDayCount(date)
 
     if (data.isEmpty) TelegramMessage("No data found")
     else {
@@ -64,10 +64,7 @@ class CovidStats extends Actor {
   def getLong(field: JsLookupResult): Long = field.as[JsNumber].value.toLong
 
   override def receive: Receive = {
-    case _: GetToday => {
-      val data = getToday
-      sender() ! data
-    }
+    case e: GetCasesForDay => sender() ! getDayCount(e.date)
     case _: UpdateAll => sender() ! backFill()
   }
 }
