@@ -42,7 +42,7 @@ class CovidStats extends Actor {
     if (data.isEmpty) return TelegramMessage(s"No data found for ${parsedDate}")
 
     val rec = data.get
-    TelegramMessage(s"Casses for ${rec.date}: ${rec.count}")
+    TelegramMessage(s"Cases for ${rec.date}: ${rec.count}")
   }
 
   def backFill(): TelegramMessage = {
