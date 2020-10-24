@@ -8,12 +8,13 @@ import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
-case class TelegramMessage(body: String)
+case class TelegramMessage(body: String, chatId: Long)
 
-case class Command(cmd: String, parameter: Option[String])
+case class Command(cmd: String, chatId: Long, parameter: Option[String])
 
 class Telegram(stats: ActorRef) extends Actor {
   val bot = new TelegramBot(apiKey)
+  self ! TelegramMessage("Hello World", defaultChatId)
 
   bot.setUpdatesListener(updates => handleUpdates(updates.asScala.toSeq))
 
@@ -24,32 +25,34 @@ class Telegram(stats: ActorRef) extends Actor {
       .filter(u => u.entities.exists(e => e.`type`.eq(MessageEntity.Type.bot_command)))
       .map(u => {
         val split = u.text.split(" ")
-        Command(split.head, Try(split(1)).toOption)
+        Command(split.head, u.chat().id(), Try(split(1)).toOption)
       })
     handleCommands(commands)
 
     UpdatesListener.CONFIRMED_UPDATES_ALL
   }
 
-  private def handleCommands(commands: Seq[Command ]): Unit = {
+  private def handleCommands(commands: Seq[Command]): Unit = {
     commands
       .foreach(c => {
         c.cmd match {
-          case "/hi" => self ! TelegramMessage("Hi!")
-          case "/refresh" => stats ! UpdateAll()
-          case "/date" => stats ! GetCasesForDay(c.parameter)
-          case "/latest" => stats ! GetCasesForDay()
+          case "/hi" => self ! TelegramMessage("Hi!", c.chatId)
+          case "/refresh" => stats ! UpdateAll(c.chatId)
+          case "/date" => stats ! GetCasesForDay(c.chatId, c.parameter)
+          case "/latest" => stats ! GetCasesForDay(c.chatId)
 
-          case e => self ! TelegramMessage(s"Unknown command: $e")
+          case e => self ! TelegramMessage(s"Unknown command: $e", c.chatId)
         }
       })
   }
 
-  def chatId: Long = sys.env("TELEGRAM_CHATID").toLong
+  def send(msg: TelegramMessage): Unit = bot.execute(new SendMessage(msg.chatId, msg.body))
+
+  def defaultChatId: Long = sys.env("TELEGRAM_CHATID").toLong
 
   def apiKey: String = sys.env("TELEGRAM_APIKEY")
 
   override def receive: Receive = {
-    case msg: TelegramMessage => bot.execute(new SendMessage(chatId, msg.body))
+    case msg: TelegramMessage => send(msg)
   }
 }

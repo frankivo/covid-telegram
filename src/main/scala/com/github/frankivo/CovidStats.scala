@@ -9,9 +9,9 @@ import scalaj.http.Http
 
 import scala.util.Try
 
-case class GetCasesForDay(date: Option[String] = None)
+case class GetCasesForDay(chatId: Long, date: Option[String] = None)
 
-case class UpdateAll()
+case class UpdateAll(chatId: Long)
 
 class CovidStats extends Actor {
 
@@ -30,28 +30,27 @@ class CovidStats extends Actor {
       .toSeq
   }
 
-  def getDayCount(date: Option[String]): TelegramMessage = {
+  def getDayCount(date: Option[String]): String = {
     val parsedDate = if (date.isEmpty) LocalDate.now().minusDays(1) else {
       val parsed = Try(LocalDate.parse(date.get)).toOption
-      if (parsed.isEmpty) return TelegramMessage(s"Cannot parse date '${date.get}'")
+      if (parsed.isEmpty) return s"Cannot parse date '${date.get}'"
       parsed.get
     }
 
     val data = stats.find(r => r.date.isEqual(parsedDate))
-    if (data.isEmpty) return TelegramMessage(s"No data found for ${parsedDate}")
+    if (data.isEmpty) return s"No data found for ${parsedDate}"
 
-    val rec = data.get
-    TelegramMessage(s"Cases for ${rec.date}: ${rec.count}")
+    s"Cases for ${data.head.date}: ${data.head.count}"
   }
 
-  def backFill(): TelegramMessage = {
+  def backFill(): String = {
     val json = download
     val filtered = filterCountry(json)
     val mapped = filtered.map(j => CovidRecord(getDate(j \ "Date"), getLong(j \ "Confirmed")))
 
     stats = mapped.getDailyCounts
 
-    TelegramMessage("Got %s records!".format(stats.length))
+    "Got %s records!".format(stats.length)
   }
 
   def getDate(field: JsLookupResult): LocalDate = LocalDate.parse(field.as[JsString].value.substring(0, 10))
@@ -59,7 +58,7 @@ class CovidStats extends Actor {
   def getLong(field: JsLookupResult): Long = field.as[JsNumber].value.toLong
 
   override def receive: Receive = {
-    case e: GetCasesForDay => sender() ! getDayCount(e.date)
-    case _: UpdateAll => sender() ! backFill()
+    case e: GetCasesForDay => sender() ! TelegramMessage(getDayCount(e.date), e.chatId)
+    case u: UpdateAll => sender() ! TelegramMessage(backFill(), u.chatId)
   }
 }
