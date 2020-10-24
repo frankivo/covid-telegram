@@ -11,6 +11,7 @@ lazy val exclude = Seq(
 )
 
 libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.11.3"
+libraryDependencies += "com.google.code.gson" % "gson" % "2.8.6"
 
 libraryDependencies += ("com.github.pengrad" % "java-telegram-bot-api" % "4.9.0" excludeAll (exclude: _*))
 libraryDependencies += ("com.typesafe.akka" %% "akka-actor" % "2.6.10" excludeAll (exclude: _*))
