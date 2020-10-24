@@ -30,28 +30,27 @@ class CovidStats extends Actor {
       .toSeq
   }
 
-  def getDayCount(chatId: Long, date: Option[String]): TelegramMessage = {
+  def getDayCount(date: Option[String]): String = {
     val parsedDate = if (date.isEmpty) LocalDate.now().minusDays(1) else {
       val parsed = Try(LocalDate.parse(date.get)).toOption
-      if (parsed.isEmpty) return TelegramMessage(s"Cannot parse date '${date.get}'", chatId)
+      if (parsed.isEmpty) return s"Cannot parse date '${date.get}'"
       parsed.get
     }
 
     val data = stats.find(r => r.date.isEqual(parsedDate))
-    if (data.isEmpty) return TelegramMessage(s"No data found for ${parsedDate}", chatId)
+    if (data.isEmpty) return s"No data found for ${parsedDate}"
 
-    val rec = data.get
-    TelegramMessage(s"Cases for ${rec.date}: ${rec.count}", chatId)
+    s"Cases for ${data.head.date}: ${data.head.count}"
   }
 
-  def backFill(chatId: Long): TelegramMessage = {
+  def backFill(): String = {
     val json = download
     val filtered = filterCountry(json)
     val mapped = filtered.map(j => CovidRecord(getDate(j \ "Date"), getLong(j \ "Confirmed")))
 
     stats = mapped.getDailyCounts
 
-    TelegramMessage("Got %s records!".format(stats.length), chatId)
+    "Got %s records!".format(stats.length)
   }
 
   def getDate(field: JsLookupResult): LocalDate = LocalDate.parse(field.as[JsString].value.substring(0, 10))
@@ -59,7 +58,7 @@ class CovidStats extends Actor {
   def getLong(field: JsLookupResult): Long = field.as[JsNumber].value.toLong
 
   override def receive: Receive = {
-    case e: GetCasesForDay => sender() ! getDayCount(e.chatId, e.date)
-    case u: UpdateAll => sender() ! backFill(u.chatId)
+    case e: GetCasesForDay => sender() ! TelegramMessage(getDayCount(e.date), e.chatId)
+    case u: UpdateAll => sender() ! TelegramMessage(backFill(), u.chatId)
   }
 }
