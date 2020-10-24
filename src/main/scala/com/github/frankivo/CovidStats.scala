@@ -15,7 +15,7 @@ case class UpdateAll()
 
 class CovidStats extends Actor {
 
-  val db: Database = new Database
+  private var stats: Seq[CovidRecord] = Seq()
 
   def download: JsValue = {
     val data = Http("https://api.covid19api.com/dayone/country/netherlands").asString.body
@@ -37,24 +37,21 @@ class CovidStats extends Actor {
       parsed.get
     }
 
-    val data = db.getDayCount(parsedDate)
-
+    val data = stats.find(r => r.date.isEqual(parsedDate))
     if (data.isEmpty) return TelegramMessage(s"No data found for ${parsedDate}")
 
     val rec = data.get
-    TelegramMessage(s"Casses for ${rec.date}: ${rec.count}")
+    TelegramMessage(s"Cases for ${rec.date}: ${rec.count}")
   }
 
   def backFill(): TelegramMessage = {
     val json = download
     val filtered = filterCountry(json)
     val mapped = filtered.map(j => CovidRecord(getDate(j \ "Date"), getLong(j \ "Confirmed")))
-    val counts = mapped.getDailyCounts
 
-    db.clearDaily()
-    db.insertDailyCounts(counts: _*)
+    stats = mapped.getDailyCounts
 
-    TelegramMessage("Got %s records!".format(mapped.length))
+    TelegramMessage("Got %s records!".format(stats.length))
   }
 
   def getDate(field: JsLookupResult): LocalDate = LocalDate.parse(field.as[JsString].value.substring(0, 10))
