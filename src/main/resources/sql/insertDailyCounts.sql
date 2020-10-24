@@ -1,1 +1,0 @@
-insert into "daily" ("date", "count") values %s
