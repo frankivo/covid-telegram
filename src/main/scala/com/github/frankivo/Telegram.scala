@@ -12,7 +12,7 @@ case class TelegramMessage(body: String, chatId: Long)
 
 case class Command(cmd: String, chatId: Long, parameter: Option[String])
 
-class Telegram(stats: ActorRef) extends Actor {
+class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
   val bot = new TelegramBot(apiKey)
   self ! TelegramMessage("Hello World", defaultChatId)
 
@@ -37,7 +37,7 @@ class Telegram(stats: ActorRef) extends Actor {
       .foreach(c => {
         c.cmd match {
           case "/hi" => self ! TelegramMessage("Hi!", c.chatId)
-          case "/refresh" => stats ! UpdateAll(c.chatId)
+          case "/refresh" => updater ! UpdateAll(c.chatId)
           case "/date" => stats ! GetCasesForDay(c.chatId, c.parameter)
           case "/latest" => stats ! GetCasesForDay(c.chatId)
 
