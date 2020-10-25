@@ -12,9 +12,17 @@ case class TelegramMessage(body: String, chatId: Long)
 
 case class Command(cmd: String, chatId: Long, parameter: Option[String])
 
+object Telegram {
+  val ownerId: Long = sys.env("TELEGRAM_OWNER").toLong
+
+  val apiKey: String = sys.env("TELEGRAM_APIKEY")
+
+  def isOwner(chatId: Long) : Boolean = ownerId == chatId
+}
+
 class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
-  val bot = new TelegramBot(apiKey)
-  self ! TelegramMessage("Hello World", defaultChatId)
+  val bot = new TelegramBot(Telegram.apiKey)
+  self ! TelegramMessage("Hello World", Telegram.ownerId)
 
   bot.setUpdatesListener(updates => handleUpdates(updates.asScala.toSeq))
 
@@ -47,10 +55,6 @@ class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
   }
 
   def send(msg: TelegramMessage): Unit = bot.execute(new SendMessage(msg.chatId, msg.body))
-
-  def defaultChatId: Long = sys.env("TELEGRAM_CHATID").toLong
-
-  def apiKey: String = sys.env("TELEGRAM_APIKEY")
 
   override def receive: Receive = {
     case msg: TelegramMessage => send(msg)

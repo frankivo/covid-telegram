@@ -16,11 +16,12 @@ class Updater(stats: ActorRef) extends Actor {
   val MIN_AGE: Int = 15
 
   override def receive: Receive = {
-    case u: UpdateAll => sender() ! TelegramMessage(refresh(), u.chatId)
+    case u: UpdateAll => sender() ! TelegramMessage(refresh(u.chatId), u.chatId)
   }
 
-  private def refresh(): String = {
-    if (LocalTime.now().isBefore(nextAllowedUpdate)) s"Refresh is not allowed for another ${countDown()}"
+  private def refresh(requester: Long): String = {
+    if (!Telegram.isOwner(requester) && LocalTime.now().isBefore(nextAllowedUpdate))
+      s"Refresh is not allowed for another ${countDown()}"
     else backFill()
   }
 
