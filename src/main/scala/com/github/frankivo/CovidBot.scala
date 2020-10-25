@@ -8,7 +8,7 @@ object CovidBot {
     val akka = ActorSystem()
 
     val stats = akka.actorOf(Props(new CovidStats))
-    val updater = akka.actorOf(Props(new CovidStats))
+    val updater = akka.actorOf(Props(new Updater(stats)))
     akka.actorOf(Props(new Telegram(stats, updater)))
   }
 
