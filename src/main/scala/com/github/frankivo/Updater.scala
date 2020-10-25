@@ -8,7 +8,7 @@ import com.github.frankivo.CovidRecordHelper.CovidSequence
 import play.api.libs.json._
 import scalaj.http.Http
 
-case class UpdateAll(chatId: Long)
+case class UpdateAll(force: Boolean, chatId: Option[Long] = None)
 
 class Updater(stats: ActorRef) extends Actor {
 
@@ -16,18 +16,20 @@ class Updater(stats: ActorRef) extends Actor {
   val MIN_AGE: Int = 15
 
   override def receive: Receive = {
-    case u: UpdateAll => sender() ! TelegramMessage(refresh(u.chatId), u.chatId)
+    case u: UpdateAll =>
+      val msg = refresh(u.force)
+      u.chatId.foreach(id => sender() ! TelegramMessage(msg, id))
   }
 
-  private def refresh(requester: Long): String = {
-    if (!Telegram.isOwner(requester) && LocalTime.now().isBefore(nextAllowedUpdate))
+  private def refresh(force: Boolean): String = {
+    if (!force && LocalTime.now().isBefore(nextAllowedUpdate))
       s"Refresh is not allowed for another ${countDown()}"
     else backFill()
   }
 
-  private def nextAllowedUpdate : LocalTime = lastUpdated.plusMinutes(MIN_AGE)
+  private def nextAllowedUpdate: LocalTime = lastUpdated.plusMinutes(MIN_AGE)
 
-  private def countDown() : String = {
+  private def countDown(): String = {
     val now = LocalTime.now()
 
     val diffMinutes = MINUTES.between(now, nextAllowedUpdate)
@@ -36,7 +38,7 @@ class Updater(stats: ActorRef) extends Actor {
     else s"$diffSeconds seconds"
   }
 
-  private def resetTime() : Unit = lastUpdated = LocalTime.now()
+  private def resetTime(): Unit = lastUpdated = LocalTime.now()
 
   private def backFill(): String = {
     val json = download
