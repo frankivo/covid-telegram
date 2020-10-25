@@ -17,7 +17,7 @@ object Telegram {
 
   val apiKey: String = sys.env("TELEGRAM_APIKEY")
 
-  def isOwner(chatId: Long) : Boolean = ownerId == chatId
+  def isOwner(chatId: Long): Boolean = ownerId == chatId
 }
 
 class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
@@ -45,7 +45,7 @@ class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
       .foreach(c => {
         c.cmd match {
           case "/hi" => self ! TelegramMessage("Hi!", c.chatId)
-          case "/refresh" => updater ! UpdateAll(c.chatId)
+          case "/refresh" => updater ! UpdateAll(Telegram.isOwner(c.chatId), Some(c.chatId))
           case "/date" => stats ! GetCasesForDay(c.chatId, c.parameter)
           case "/latest" => stats ! GetCasesForDay(c.chatId)
 
