@@ -21,8 +21,9 @@ class CovidStats extends Actor {
       parsed.get
     }
 
+    if (stats == null) return "Data has not been pulled yet."
     val data = stats.data.find(r => r.date.isEqual(parsedDate))
-    if (data.isEmpty) return s"No data found for ${parsedDate}"
+    if (data.isEmpty) return s"No data found for $parsedDate"
 
     s"Cases for ${data.head.date}: ${data.head.count}"
   }
