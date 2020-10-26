@@ -6,7 +6,7 @@ import akka.actor.{ActorSystem, Props}
 
 object CovidBot {
 
-  val DIR_DATA : Path = Paths.get(System.getProperty("user.home"), ".covidbot")
+  val DIR_BASE : Path = Paths.get(System.getProperty("user.home"), ".covidbot")
 
   def main(args: Array[String]): Unit = {
     val akka = ActorSystem()
