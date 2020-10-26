@@ -1,72 +1,90 @@
 package com.github.frankivo
 
-import java.time.temporal.ChronoUnit.{MINUTES, SECONDS}
-import java.time.{LocalDate, LocalTime}
+import java.io.{File, FileOutputStream}
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Path, Paths}
+import java.time.format.DateTimeFormatter
+import java.time.{Duration, LocalDate, LocalTime}
 
 import akka.actor.{Actor, ActorRef}
-import com.github.frankivo.CovidRecordHelper.CovidSequence
-import play.api.libs.json._
 import scalaj.http.Http
 
-case class UpdateAll(force: Boolean, destination: Option[Long] = None)
+import scala.io.Source
+import scala.reflect.io.Directory
+import scala.util.Try
+
+case class UpdateAll(destination: Option[Long] = None)
 
 class Updater(stats: ActorRef) extends Actor {
 
   var lastUpdated: LocalTime = LocalTime.MIN
   val MIN_AGE: Int = 15
+  val FIRST_DATE: LocalDate = LocalDate.parse("2020-02-27")
+  val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
 
   override def receive: Receive = {
     case u: UpdateAll =>
-      val msg = refresh(u.force)
+      val msg = refresh()
       u.destination.foreach(id => sender() ! TelegramMessage(id, msg))
   }
 
-  private def refresh(force: Boolean): String = {
-    if (!force && LocalTime.now().isBefore(nextAllowedUpdate))
-      s"Refresh is not allowed for another ${countDown()}"
-    else backFill()
+  private def refresh(): String = {
+    downloadAll()
+    readAllData()
+
+    val count = Directory(DIR_DATA.toFile).files.length
+    s"Done: I have data for $count days"
   }
 
-  private def nextAllowedUpdate: LocalTime = lastUpdated.plusMinutes(MIN_AGE)
+  private def downloadAll(): Unit = {
+    val dayCounts = Duration.between(FIRST_DATE.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
 
-  private def countDown(): String = {
-    val now = LocalTime.now()
-
-    val diffMinutes = MINUTES.between(now, nextAllowedUpdate)
-    val diffSeconds = SECONDS.between(now, nextAllowedUpdate)
-    if (diffMinutes > 0) s"$diffMinutes minutes"
-    else s"$diffSeconds seconds"
+    (0 to dayCounts.toInt)
+      .map(FIRST_DATE.plusDays(_))
+      .foreach(downloadDay)
   }
 
-  private def resetTime(): Unit = lastUpdated = LocalTime.now()
+  private def downloadDay(date: LocalDate): Unit = {
+    Directory(DIR_DATA.toFile).createDirectory()
 
-  private def backFill(): String = {
-    val json = download
-    val filtered = filterCountry(json)
-    val mapped = filtered.map(j => CovidRecord(getDate(j \ "Date"), getLong(j \ "Confirmed")))
+    val dateStr = date.format(DateTimeFormatter.ofPattern("YYYYMMdd"))
 
-    val update = mapped.getDailyCounts
-    stats ! Statistics(update)
+    val url = s"https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-national/RIVM_NL_national_$dateStr.csv"
+    val fileName = Paths.get(DIR_DATA.toString, url.split("/").last)
 
-    resetTime()
+    if (!fileName.toFile.exists()) {
+      val result = Http(url).asString
 
-    "Got %s records!".format(update.length)
+      if (result.isSuccess) {
+        val out = new FileOutputStream(fileName.toFile)
+        out.write(result.body.getBytes(StandardCharsets.UTF_8))
+        out.close()
+      }
+    }
   }
 
-  private def download: JsValue = {
-    val data = Http("https://api.covid19api.com/dayone/country/netherlands").asString.body
-    Json.parse(data)
-  }
-
-  private def filterCountry(json: JsValue): Seq[JsValue] = {
-    json
-      .as[JsArray]
-      .value
-      .filter(j => (j \ "Province").as[JsString].value.isEmpty)
+  private def readAllData(): Unit = {
+    val data = Directory(DIR_DATA.toFile)
+      .files
+      .map(_.jfile)
+      .map(readFile)
       .toSeq
+
+    stats ! Statistics(data)
   }
 
-  private def getDate(field: JsLookupResult): LocalDate = LocalDate.parse(field.as[JsString].value.substring(0, 10))
+  private def readFile(file: File): CovidRecord = {
+    val bufferedSource = Source.fromFile(file)
 
-  private def getLong(field: JsLookupResult): Long = field.as[JsNumber].value.toLong
+    val rec = bufferedSource
+      .getLines()
+      .toSeq
+      .map(_.split(","))
+      .filter(r => r(1).contains("Totaal"))
+      .map(r => CovidRecord(LocalDate.parse(r(0)), Try(r(2).toLong).getOrElse(0)))
+      .head
+
+    bufferedSource.close
+    rec
+  }
 }
