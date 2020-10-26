@@ -1,7 +1,6 @@
 package com.github.frankivo
 
 import java.nio.file.Paths
-import java.time.Month
 
 import akka.actor.Actor
 import org.jfree.chart.{ChartFactory, ChartUtils}
@@ -25,6 +24,8 @@ object Graphs {
 }
 
 class Graphs extends Actor {
+  Graphs.deleteDir()
+
   override def receive: Receive = {
     case e: MonthData => createMonthGraph(e.data)
   }
