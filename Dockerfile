@@ -11,5 +11,6 @@ COPY src src
 RUN sbt assembly
 
 FROM openjdk:8-alpine
-COPY --from=compiler /root/target/scala-2.13/*jar /root
+RUN apk add --no-cache ttf-dejavu
 CMD java -jar /root/*jar
+COPY --from=compiler /root/target/scala-2.13/*jar /root
