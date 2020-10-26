@@ -71,7 +71,6 @@ class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
       }
 
       val file = Graphs.tmpFile(s"month/${year}_$month.png").jfile
-      println(file)
       if (file.exists())
         send(dest, file)
       else
