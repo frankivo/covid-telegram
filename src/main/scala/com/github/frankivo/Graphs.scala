@@ -30,7 +30,7 @@ class Graphs extends Actor {
     case e: MonthData => createMonthGraph(e.data)
   }
 
-  def mapData(data: Seq[CovidRecord]) : DefaultCategoryDataset = {
+  def mapData(data: Seq[CovidRecord]): DefaultCategoryDataset = {
     val dataset = new DefaultCategoryDataset
 
     data.foreach(s => dataset.setValue(s.count, "Cases", s.date.getDayOfMonth))
@@ -42,9 +42,14 @@ class Graphs extends Actor {
 
     val firstDate = data.head.date
 
-    val barChart = ChartFactory.createBarChart(s"Cases ${camelCase(firstDate.getMonth.toString)} ${firstDate.getYear}", "Day", "Cases", mapData(data))
-    val imgFile = Graphs.tmpFile(s"month/${firstDate.getYear}_${firstDate.getMonthValue}.png")
+    val barChart = ChartFactory.createBarChart(
+      s"Cases ${camelCase(firstDate.getMonth.toString)} ${firstDate.getYear}",
+      "Day",
+      "Cases",
+      mapData(data)
+    )
 
+    val imgFile = Graphs.tmpFile(s"month/${firstDate.getYear}_${firstDate.getMonthValue}.png")
     ChartUtils.saveChartAsPNG(imgFile.jfile, barChart, 800, 400)
   }
 
