@@ -1,15 +1,17 @@
 package com.github.frankivo
 
-import java.io.FileOutputStream
+import java.io.{File, FileOutputStream}
 import java.nio.charset.StandardCharsets
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDate, LocalTime}
 
 import akka.actor.{Actor, ActorRef}
 import scalaj.http.Http
 
+import scala.io.Source
 import scala.reflect.io.Directory
+import scala.util.Try
 
 case class UpdateAll(force: Boolean, destination: Option[Long] = None)
 
@@ -18,6 +20,7 @@ class Updater(stats: ActorRef) extends Actor {
   var lastUpdated: LocalTime = LocalTime.MIN
   val MIN_AGE: Int = 15
   val FIRST_DATE: LocalDate = LocalDate.parse("2020-02-27")
+  val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
 
   override def receive: Receive = {
     case u: UpdateAll =>
@@ -27,8 +30,9 @@ class Updater(stats: ActorRef) extends Actor {
 
   private def refresh(): String = {
     downloadAll()
+    readAllData()
 
-    val count = Directory(CovidBot.DIR_DATA.toFile).files.length
+    val count = Directory(DIR_DATA.toFile).files.length
     s"Done: I have data for $count days"
   }
 
@@ -41,12 +45,12 @@ class Updater(stats: ActorRef) extends Actor {
   }
 
   private def downloadDay(date: LocalDate): Unit = {
-    Directory(CovidBot.DIR_DATA.toFile).createDirectory()
+    Directory(DIR_DATA.toFile).createDirectory()
 
     val dateStr = date.format(DateTimeFormatter.ofPattern("YYYYMMdd"))
 
     val url = s"https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-national/RIVM_NL_national_$dateStr.csv"
-    val fileName = Paths.get(CovidBot.DIR_DATA.toString, url.split("/").last)
+    val fileName = Paths.get(DIR_DATA.toString, url.split("/").last)
 
     if (!fileName.toFile.exists()) {
       val result = Http(url).asString
@@ -57,5 +61,30 @@ class Updater(stats: ActorRef) extends Actor {
         out.close()
       }
     }
+  }
+
+  private def readAllData(): Unit = {
+    val data = Directory(DIR_DATA.toFile)
+      .files
+      .map(_.jfile)
+      .map(readFile)
+      .toSeq
+
+    stats ! Statistics(data)
+  }
+
+  private def readFile(file: File): CovidRecord = {
+    val bufferedSource = Source.fromFile(file)
+
+    val rec = bufferedSource
+      .getLines()
+      .toSeq
+      .map(_.split(","))
+      .filter(r => r(1).contains("Totaal"))
+      .map(r => CovidRecord(LocalDate.parse(r(0)), Try(r(2).toLong).getOrElse(0)))
+      .head
+
+    bufferedSource.close
+    rec
   }
 }
