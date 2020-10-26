@@ -1,6 +1,7 @@
 package com.github.frankivo
 
 import java.io.File
+import java.time.LocalDate
 
 import akka.actor.{Actor, ActorRef}
 import com.pengrad.telegrambot.model.{MessageEntity, Update}
@@ -50,16 +51,36 @@ class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
           case "/refresh" => updater ! UpdateAll(Telegram.isOwner(c.destination), Some(c.destination))
           case "/date" => stats ! GetCasesForDay(c.destination, c.parameter)
           case "/latest" => stats ! GetCasesForDay(c.destination)
-          case "/graph" => handleGraph(c.destination)
+          case "/graph" => handleGraph(c.destination, c.parameter)
 
           case e => self ! TelegramMessage(c.destination, s"Unknown command: $e")
         }
       })
   }
 
-  def handleGraph(dest: Long): Unit = {
-    val file = Graphs.tmpFile("month/2020_10.png").jfile
-    send(dest, file)
+  def handleGraph(dest: Long, request: Option[String]): Unit = {
+    val curYear = LocalDate.now().getYear
+    val curMonth = LocalDate.now().getMonthValue
+
+    try {
+      val (year, month) = {
+        if (request.isDefined) {
+          if (request.get.length == 1) (curYear, request.get.toInt)
+        }
+        else (curYear, curMonth)
+      }
+
+      val file = Graphs.tmpFile(s"month/${year}_${month}.png").jfile
+      println(file)
+      if (file.exists())
+        send(dest, file)
+      else
+        send(dest, s"No file found for 'month/${year}_{$month}")
+    }
+    catch {
+      case e : Exception => send(dest, "Failed: " + e.getMessage)
+    }
+
   }
 
   def send(dest: Long, msg: String): Unit = bot.execute(new SendMessage(dest, msg))
