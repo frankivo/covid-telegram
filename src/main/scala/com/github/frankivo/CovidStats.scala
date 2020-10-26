@@ -8,7 +8,7 @@ import scala.util.Try
 
 case class Statistics(data: Seq[CovidRecord])
 
-case class GetCasesForDay(chatId: Long, date: Option[String] = None)
+case class GetCasesForDay(destination: Long, date: Option[String] = None)
 
 class CovidStats(graphs: ActorRef) extends Actor {
 
@@ -42,7 +42,7 @@ class CovidStats(graphs: ActorRef) extends Actor {
   }
 
   override def receive: Receive = {
-    case e: GetCasesForDay => sender() ! TelegramMessage(getDayCount(e.date), e.chatId)
+    case e: GetCasesForDay => sender() ! TelegramMessage(e.destination, getDayCount(e.date))
     case e: Statistics => updateStats(e)
   }
 }

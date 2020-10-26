@@ -8,7 +8,7 @@ import com.github.frankivo.CovidRecordHelper.CovidSequence
 import play.api.libs.json._
 import scalaj.http.Http
 
-case class UpdateAll(force: Boolean, chatId: Option[Long] = None)
+case class UpdateAll(force: Boolean, destination: Option[Long] = None)
 
 class Updater(stats: ActorRef) extends Actor {
 
@@ -18,7 +18,7 @@ class Updater(stats: ActorRef) extends Actor {
   override def receive: Receive = {
     case u: UpdateAll =>
       val msg = refresh(u.force)
-      u.chatId.foreach(id => sender() ! TelegramMessage(msg, id))
+      u.destination.foreach(id => sender() ! TelegramMessage(id, msg))
   }
 
   private def refresh(force: Boolean): String = {
