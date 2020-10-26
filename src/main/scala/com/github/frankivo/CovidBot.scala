@@ -1,8 +1,12 @@
 package com.github.frankivo
 
+import java.nio.file.{Path, Paths}
+
 import akka.actor.{ActorSystem, Props}
 
 object CovidBot {
+
+  val DIR_DATA : Path = Paths.get(System.getProperty("user.home"), ".covidbot")
 
   def main(args: Array[String]): Unit = {
     val akka = ActorSystem()
