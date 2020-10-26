@@ -70,12 +70,12 @@ class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
         else (curYear, curMonth)
       }
 
-      val file = Graphs.tmpFile(s"month/${year}_${month}.png").jfile
+      val file = Graphs.tmpFile(s"month/${year}_$month.png").jfile
       println(file)
       if (file.exists())
         send(dest, file)
       else
-        send(dest, s"No file found for 'month/${year}_{$month}")
+        send(dest, s"No file found for 'month/${year}_$month")
     }
     catch {
       case e : Exception => send(dest, "Failed: " + e.getMessage)
