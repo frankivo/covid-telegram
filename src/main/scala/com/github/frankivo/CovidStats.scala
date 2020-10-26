@@ -2,7 +2,7 @@ package com.github.frankivo
 
 import java.time.LocalDate
 
-import akka.actor.Actor
+import akka.actor.{Actor, ActorRef}
 
 import scala.util.Try
 
@@ -10,9 +10,22 @@ case class Statistics(data: Seq[CovidRecord])
 
 case class GetCasesForDay(chatId: Long, date: Option[String] = None)
 
-class CovidStats extends Actor {
+class CovidStats(graphs: ActorRef) extends Actor {
 
   private var stats: Statistics = _
+
+  def updateStats(data: Statistics): Unit = {
+    stats = data
+    graphMonths()
+  }
+
+  def graphMonths(): Unit = {
+    val grouped = stats.data.groupBy(r => (r.date.getYear, r.date.getMonthValue))
+    val curMonth = (LocalDate.now().getYear, LocalDate.now().getMonthValue)
+
+    val lastMonth = grouped(curMonth)
+    graphs ! MonthData(lastMonth)
+  }
 
   def getDayCount(date: Option[String]): String = {
     val parsedDate = if (date.isEmpty) LocalDate.now().minusDays(1) else {
@@ -30,6 +43,6 @@ class CovidStats extends Actor {
 
   override def receive: Receive = {
     case e: GetCasesForDay => sender() ! TelegramMessage(getDayCount(e.date), e.chatId)
-    case e: Statistics => stats = e
+    case e: Statistics => updateStats(e)
   }
 }
