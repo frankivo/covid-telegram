@@ -15,16 +15,23 @@ class CovidStats(graphs: ActorRef) extends Actor {
   private var stats: Statistics = _
 
   def updateStats(data: Statistics): Unit = {
+    val isFirstRun = stats == null
+
     stats = data
-    graphMonths()
+    graphMonths(isFirstRun)
   }
 
-  def graphMonths(): Unit = {
-    val grouped = stats.data.groupBy(r => (r.date.getYear, r.date.getMonthValue))
-    val curMonth = (LocalDate.now().getYear, LocalDate.now().getMonthValue)
+  def graphMonths(force: Boolean): Unit = {
+    val grouped = stats
+      .data
+      .groupBy(r => (r.date.getYear, r.date.getMonthValue))
 
-    val lastMonth = grouped(curMonth)
-    graphs ! MonthData(lastMonth)
+    if (force)
+      grouped.foreach(m => graphs ! MonthData(m._2))
+    else {
+      val curMonth = (LocalDate.now().getYear, LocalDate.now().getMonthValue)
+      graphs ! MonthData(grouped(curMonth))
+    }
   }
 
   def getDayCount(date: Option[String]): String = {
