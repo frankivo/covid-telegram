@@ -13,7 +13,7 @@ import scala.io.Source
 import scala.reflect.io.Directory
 import scala.util.Try
 
-case class UpdateAll(force: Boolean, destination: Option[Long] = None)
+case class UpdateAll(destination: Option[Long] = None)
 
 class Updater(stats: ActorRef) extends Actor {
 

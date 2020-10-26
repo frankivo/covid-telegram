@@ -48,7 +48,7 @@ class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
       .foreach(c => {
         c.cmd match {
           case "/hi" => send(c.destination, "Hi!")
-          case "/refresh" => updater ! UpdateAll(Telegram.isOwner(c.destination), Some(c.destination))
+          case "/refresh" => updater ! UpdateAll(Some(c.destination))
           case "/date" => stats ! GetCasesForDay(c.destination, c.parameter)
           case "/latest" => stats ! GetCasesForDay(c.destination)
           case "/graph" => handleGraph(c.destination, c.parameter)
