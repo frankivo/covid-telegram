@@ -43,7 +43,7 @@ class Graphs extends Actor {
 
     val barChart = ChartFactory.createBarChart(s"Cases ${camelCase(firstDate.getMonth.toString)} ${firstDate.getYear}", "Day", "Cases", mapData(data))
     val imgFile = Graphs.tmpFile(s"month/${firstDate.getYear}_${firstDate.getMonthValue}.png")
-    
+
     ChartUtils.saveChartAsPNG(imgFile.jfile, barChart, 800, 400)
   }
 

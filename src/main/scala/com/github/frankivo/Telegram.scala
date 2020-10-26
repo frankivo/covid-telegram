@@ -1,8 +1,10 @@
 package com.github.frankivo
 
+import java.io.File
+
 import akka.actor.{Actor, ActorRef}
 import com.pengrad.telegrambot.model.{MessageEntity, Update}
-import com.pengrad.telegrambot.request.SendMessage
+import com.pengrad.telegrambot.request.{SendMessage, SendPhoto}
 import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
 
 import scala.jdk.CollectionConverters._
@@ -44,17 +46,27 @@ class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
     commands
       .foreach(c => {
         c.cmd match {
-          case "/hi" => self ! TelegramMessage("Hi!", c.chatId)
+          case "/hi" => send(c.chatId, "Hi!")
           case "/refresh" => updater ! UpdateAll(Telegram.isOwner(c.chatId), Some(c.chatId))
           case "/date" => stats ! GetCasesForDay(c.chatId, c.parameter)
           case "/latest" => stats ! GetCasesForDay(c.chatId)
+          case "/graph" => handleGraph(c.chatId)
 
           case e => self ! TelegramMessage(s"Unknown command: $e", c.chatId)
         }
       })
   }
 
-  def send(msg: TelegramMessage): Unit = bot.execute(new SendMessage(msg.chatId, msg.body))
+  def handleGraph(dest: Long): Unit = {
+    val file = Graphs.tmpFile("month/2020_10.png").jfile
+    send(dest, file)
+  }
+
+  def send(dest: Long, msg: String): Unit = bot.execute(new SendMessage(dest, msg))
+
+  def send(msg: TelegramMessage): Unit = send(msg.chatId, msg.body)
+
+  def send(dest: Long, photo: File): Unit = bot.execute(new SendPhoto(dest, photo))
 
   override def receive: Receive = {
     case msg: TelegramMessage => send(msg)
