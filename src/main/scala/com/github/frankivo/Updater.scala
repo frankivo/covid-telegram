@@ -1,17 +1,16 @@
 package com.github.frankivo
 
-import java.io.{File, FileOutputStream}
+import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDate, LocalTime}
 
 import akka.actor.{Actor, ActorRef}
+import com.github.frankivo.CsvReader.readFile
 import scalaj.http.Http
 
-import scala.io.Source
 import scala.reflect.io.Directory
-import scala.util.Try
 
 case class UpdateAll(destination: Option[Long] = None)
 
@@ -71,20 +70,5 @@ class Updater(stats: ActorRef) extends Actor {
       .toSeq
 
     stats ! Statistics(data)
-  }
-
-  private def readFile(file: File): CovidRecord = {
-    val bufferedSource = Source.fromFile(file)
-
-    val rec = bufferedSource
-      .getLines()
-      .toSeq
-      .map(_.split(","))
-      .filter(r => r(1).contains("Totaal"))
-      .map(r => CovidRecord(LocalDate.parse(r(0)), Try(r(2).toLong).getOrElse(0)))
-      .head
-
-    bufferedSource.close
-    rec
   }
 }
