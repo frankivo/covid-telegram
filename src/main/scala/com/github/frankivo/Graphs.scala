@@ -1,6 +1,7 @@
 package com.github.frankivo
 
 import java.nio.file.{Path, Paths}
+import java.time.LocalDate
 
 import akka.actor.Actor
 import com.github.frankivo.Graphs.DIR_MONTHS
@@ -36,16 +37,30 @@ class Graphs extends Actor {
 
     val firstDate = data.head.date
 
-    val barChart = ChartFactory.createBarChart(
-      s"Cases ${camelCase(firstDate.getMonth.toString)} ${firstDate.getYear}",
-      "Day",
-      "Cases",
-      mapData(data)
-    )
+    val imgFile = Paths.get(
+      DIR_MONTHS.toString,
+      s"${firstDate.getYear}_${firstDate.getMonthValue}.png"
+    ).toFile
 
-    val imgFile = Paths.get(DIR_MONTHS.toString, s"${firstDate.getYear}_${firstDate.getMonthValue}.png")
-    ChartUtils.saveChartAsPNG(imgFile.toFile, barChart, 800, 400)
+    val doUpdate = !imgFile.exists() || isCurrentMonth(firstDate)
+
+    if (doUpdate) {
+      val barChart = ChartFactory.createBarChart(
+        s"Cases ${camelCase(firstDate.getMonth.toString)} ${firstDate.getYear}",
+        "Day",
+        "Cases",
+        mapData(data)
+      )
+
+      imgFile.delete()
+      ChartUtils.saveChartAsPNG(imgFile, barChart, 800, 400)
+    }
   }
 
   def camelCase(str: String): String = str.take(1).toUpperCase() + str.drop(1).toLowerCase()
+
+  def isCurrentMonth(date: LocalDate): Boolean = {
+    val now = LocalDate.now()
+    date.getMonthValue == now.getMonthValue && date.getYear == now.getYear
+  }
 }
