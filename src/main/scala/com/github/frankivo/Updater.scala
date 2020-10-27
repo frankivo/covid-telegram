@@ -13,17 +13,18 @@ case class UpdateAll(destination: Option[Long])
 
 class Updater() extends Actor {
 
-  private var hasRun = false
   val FIRST_DATE: LocalDate = LocalDate.parse("2020-02-27")
   val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
 
-  override def receive: Receive = {
+  override def receive: Receive = onMessage(false)
+
+  private def onMessage(hasRun: Boolean): Receive = {
     case u: UpdateAll =>
-      val msg = refresh()
+      val msg = refresh(hasRun)
       u.destination.foreach(id => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(id, msg))
   }
 
-  private def refresh(): String = {
+  private def refresh(hasRun: Boolean): String = {
     val countBefore = fileCount
     downloadAll()
 
@@ -31,7 +32,7 @@ class Updater() extends Actor {
     if (countAfter > countBefore || !hasRun)
       readAllData()
 
-    hasRun = true
+    context.become(onMessage(true))
 
     s"Done: I have data for $countAfter days"
   }
@@ -74,4 +75,5 @@ class Updater() extends Actor {
 
     CovidBot.ACTOR_STATS ! Statistics(data)
   }
+
 }
