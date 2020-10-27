@@ -21,12 +21,12 @@ class CovidStats() extends Actor {
     graphMonths(isFirstRun)
   }
 
-  def graphMonths(force: Boolean): Unit = {
+  def graphMonths(isFirstRun: Boolean): Unit = {
     val grouped = stats
       .data
       .groupBy(r => (r.date.getYear, r.date.getMonthValue))
 
-    if (force)
+    if (isFirstRun)
       grouped.foreach(m => CovidBot.ACTOR_GRAPHS ! MonthData(m._2))
     else {
       val curMonth = (LocalDate.now().getYear, LocalDate.now().getMonthValue)
