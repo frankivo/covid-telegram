@@ -4,33 +4,40 @@ import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
 import java.time.format.DateTimeFormatter
-import java.time.{Duration, LocalDate, LocalTime}
+import java.time.{Duration, LocalDate}
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.Actor
 import scalaj.http.Http
 
-case class UpdateAll(destination: Option[Long] = None)
+case class UpdateAll(destination: Option[Long])
 
-class Updater(stats: ActorRef) extends Actor {
+class Updater() extends Actor {
 
-  var lastUpdated: LocalTime = LocalTime.MIN
-  val MIN_AGE: Int = 15
   val FIRST_DATE: LocalDate = LocalDate.parse("2020-02-27")
   val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
 
-  override def receive: Receive = {
+  override def receive: Receive = onMessage(false)
+
+  private def onMessage(hasRun: Boolean): Receive = {
     case u: UpdateAll =>
-      val msg = refresh()
-      u.destination.foreach(id => sender() ! TelegramMessage(id, msg))
+      val msg = refresh(hasRun)
+      u.destination.foreach(id => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(id, msg))
   }
 
-  private def refresh(): String = {
+  private def refresh(hasRun: Boolean): String = {
+    val countBefore = fileCount
     downloadAll()
-    readAllData()
 
-    val count = DIR_DATA.toFile.listFiles().length
-    s"Done: I have data for $count days"
+    val countAfter = fileCount
+    if (countAfter > countBefore || !hasRun)
+      readAllData()
+
+    context.become(onMessage(true))
+
+    s"Done: I have data for $countAfter days"
   }
+
+  def fileCount: Long = DIR_DATA.toFile.listFiles().length
 
   private def downloadAll(): Unit = {
     val dayCounts = Duration.between(FIRST_DATE.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
@@ -66,6 +73,7 @@ class Updater(stats: ActorRef) extends Actor {
       .map(CsvReader.readFile)
       .toSeq
 
-    stats ! Statistics(data)
+    CovidBot.ACTOR_STATS ! Statistics(data)
   }
+
 }
