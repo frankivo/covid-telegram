@@ -6,6 +6,14 @@ import akka.actor.Actor
 
 import scala.util.Try
 
+case class Statistics(data: Seq[CovidRecord]) {
+  def findDayCount(date: LocalDate): Option[CovidRecord] = data.find(_.date.isEqual(date))
+
+  def findMaxDate(): LocalDate = data.map(_.date).max
+
+  def latest(): CovidRecord = data.maxBy(_.date)
+}
+
 case class GetCasesForDay(destination: Long, date: Option[String] = None)
 
 class CovidStats() extends Actor {
@@ -46,7 +54,14 @@ class CovidStats() extends Actor {
 
     if (date.isEmpty) return caseString(stats.latest())
 
-    val parsedDate = Try(LocalDate.parse(date.get)).getOrElse(return s"Cannot parse date '${date.get}'")
+    val parsedDate =
+      if (date.isEmpty) stats.findMaxDate()
+      else {
+        val parsed = Try(LocalDate.parse(date.get)).toOption
+        if (parsed.isEmpty) return s"Cannot parse date '${date.get}'"
+        parsed.get
+      }
+
     val rec = stats.findDayCount(parsedDate).getOrElse(return s"No data found for $parsedDate")
     caseString(rec)
   }
