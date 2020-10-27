@@ -33,7 +33,9 @@ class Graphs extends Actor {
   def mapData(data: Seq[CovidRecord]): DefaultCategoryDataset = {
     val dataset = new DefaultCategoryDataset
 
-    data.foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.date.getDayOfMonth))
+    data
+      .sortBy(_.date)
+      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.date.getDayOfMonth))
     dataset
   }
 
