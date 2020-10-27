@@ -9,7 +9,7 @@ import java.time.{Duration, LocalDate, LocalTime}
 import akka.actor.Actor
 import scalaj.http.Http
 
-case class UpdateAll(destination: Option[Long] = None)
+case class UpdateAll(destination: Option[Long])
 
 class Updater() extends Actor {
 
@@ -21,7 +21,7 @@ class Updater() extends Actor {
   override def receive: Receive = {
     case u: UpdateAll =>
       val msg = refresh()
-      u.destination.foreach(id => sender() ! TelegramMessage(id, msg))
+      u.destination.foreach(id => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(id, msg))
   }
 
   private def refresh(): String = {

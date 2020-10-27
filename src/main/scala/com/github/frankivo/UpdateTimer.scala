@@ -16,6 +16,6 @@ class UpdateTimer(updater: ActorRef) {
     }
   }
 
-  def trigger(): Unit = updater ! UpdateAll()
+  def trigger(): Unit = updater ! UpdateAll(None)
 
 }

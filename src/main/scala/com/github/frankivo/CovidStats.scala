@@ -49,7 +49,7 @@ class CovidStats() extends Actor {
   }
 
   override def receive: Receive = {
-    case e: GetCasesForDay => sender() ! TelegramMessage(e.destination, getDayCount(e.date))
+    case e: GetCasesForDay => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(e.destination, getDayCount(e.date))
     case e: Statistics => updateStats(e)
   }
 }
