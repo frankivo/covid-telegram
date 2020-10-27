@@ -19,6 +19,8 @@ class CovidStats() extends Actor {
 
     stats = data
     graphMonths(isFirstRun)
+
+    broadcastToday()
   }
 
   def graphMonths(isFirstRun: Boolean): Unit = {
@@ -34,6 +36,8 @@ class CovidStats() extends Actor {
     }
   }
 
+  def findDayCount(date: LocalDate): Option[CovidRecord] = stats.data.find(_.date.isEqual(date))
+
   def getDayCount(date: Option[String]): String = {
     val parsedDate = if (date.isEmpty) LocalDate.now().minusDays(1) else {
       val parsed = Try(LocalDate.parse(date.get)).toOption
@@ -42,7 +46,7 @@ class CovidStats() extends Actor {
     }
 
     if (stats == null) return "Data has not been pulled yet."
-    val data = stats.data.find(r => r.date.isEqual(parsedDate))
+    val data = findDayCount(parsedDate)
     if (data.isEmpty) return s"No data found for $parsedDate"
 
     s"Cases for ${data.head.date}: ${data.head.count}"
@@ -51,5 +55,10 @@ class CovidStats() extends Actor {
   override def receive: Receive = {
     case e: GetCasesForDay => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(e.destination, getDayCount(e.date))
     case e: Statistics => updateStats(e)
+  }
+
+  def broadcastToday(): Unit = {
+    findDayCount(LocalDate.now())
+      .foreach(r => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(Telegram.broadcastId, s"There are ${r.count} new cases!"))
   }
 }

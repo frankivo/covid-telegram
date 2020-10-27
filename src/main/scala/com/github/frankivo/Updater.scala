@@ -25,11 +25,14 @@ class Updater() extends Actor {
   }
 
   private def refresh(): String = {
+    val countBefore = fileCount
     downloadAll()
-    readAllData()
 
-    val count = fileCount
-    s"Done: I have data for $count days"
+    val countAfter = fileCount
+    if (countAfter > countBefore)
+      readAllData()
+
+    s"Done: I have data for $countAfter days"
   }
 
   def fileCount: Long = DIR_DATA.toFile.listFiles().length
