@@ -15,8 +15,7 @@ object CovidBot {
     val stats = akka.actorOf(Props(new CovidStats(graphs)))
     val updater = akka.actorOf(Props(new Updater(stats)))
     akka.actorOf(Props(new Telegram(stats, updater)))
-
-    updater ! UpdateAll()
+    new UpdateTimer(updater)
   }
 
 }
