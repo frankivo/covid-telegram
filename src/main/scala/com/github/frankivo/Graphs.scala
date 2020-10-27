@@ -4,11 +4,8 @@ import java.nio.file.{Path, Paths}
 import java.time.LocalDate
 
 import akka.actor.Actor
-import com.github.frankivo.Graphs.DIR_MONTHS
 import org.jfree.chart.{ChartFactory, ChartUtils}
 import org.jfree.data.category.DefaultCategoryDataset
-
-import scala.reflect.io.Directory
 
 case class MonthData(data: Seq[CovidRecord])
 
@@ -33,12 +30,12 @@ class Graphs extends Actor {
   }
 
   def createMonthGraph(data: Seq[CovidRecord]): Unit = {
-    Directory(DIR_MONTHS.toFile).createDirectory(force = true)
+    Graphs.DIR_MONTHS.toFile.mkdirs()
 
     val firstDate = data.head.date
 
     val imgFile = Paths.get(
-      DIR_MONTHS.toString,
+      Graphs.DIR_MONTHS.toString,
       s"${firstDate.getYear}_${firstDate.getMonthValue}.png"
     ).toFile
 

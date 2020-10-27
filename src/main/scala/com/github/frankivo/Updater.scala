@@ -7,10 +7,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDate, LocalTime}
 
 import akka.actor.{Actor, ActorRef}
-import com.github.frankivo.CsvReader.readFile
 import scalaj.http.Http
-
-import scala.reflect.io.Directory
 
 case class UpdateAll(destination: Option[Long] = None)
 
@@ -31,7 +28,7 @@ class Updater(stats: ActorRef) extends Actor {
     downloadAll()
     readAllData()
 
-    val count = Directory(DIR_DATA.toFile).files.length
+    val count = DIR_DATA.toFile.listFiles().length
     s"Done: I have data for $count days"
   }
 
@@ -44,7 +41,7 @@ class Updater(stats: ActorRef) extends Actor {
   }
 
   private def downloadDay(date: LocalDate): Unit = {
-    Directory(DIR_DATA.toFile).createDirectory()
+    DIR_DATA.toFile.mkdirs()
 
     val dateStr = date.format(DateTimeFormatter.ofPattern("YYYYMMdd"))
 
@@ -63,10 +60,10 @@ class Updater(stats: ActorRef) extends Actor {
   }
 
   private def readAllData(): Unit = {
-    val data = Directory(DIR_DATA.toFile)
-      .files
-      .map(_.jfile)
-      .map(readFile)
+    val data = DIR_DATA
+      .toFile
+      .listFiles()
+      .map(CsvReader.readFile)
       .toSeq
 
     stats ! Statistics(data)
