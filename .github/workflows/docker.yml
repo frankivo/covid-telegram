@@ -1,0 +1,32 @@
+name: Build docker for armv7 and amd64
+
+on:
+  push:
+    branches: [ master ]
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Docker Login
+        uses: docker/login-action@v1.6.0
+        with:
+          username: oosterhuisf
+          password: ${{ secrets.DOCKERHUB }}
+
+      - name: Install qemu for armv7
+        run: |
+          sudo apt install qemu-user-static
+          docker run --rm --privileged docker/binfmt:66f9012c56a8316f9244ffd7622d7c21c1f6f28d
+          docker buildx create --name armbuilder
+          docker buildx use armbuilder
+          docker buildx inspect --bootstrap
+          
+      - name: Build and push docker images
+        run: |          
+          docker buildx build --platform linux/amd64,linux/arm/v7 -t oosterhuisf/covid-telegram:latest --push .
+          
