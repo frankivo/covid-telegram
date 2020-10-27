@@ -2,7 +2,7 @@ package com.github.frankivo
 
 import java.time.LocalDate
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.Actor
 
 import scala.util.Try
 
@@ -10,7 +10,7 @@ case class Statistics(data: Seq[CovidRecord])
 
 case class GetCasesForDay(destination: Long, date: Option[String] = None)
 
-class CovidStats(graphs: ActorRef) extends Actor {
+class CovidStats() extends Actor {
 
   private var stats: Statistics = _
 
@@ -27,10 +27,10 @@ class CovidStats(graphs: ActorRef) extends Actor {
       .groupBy(r => (r.date.getYear, r.date.getMonthValue))
 
     if (force)
-      grouped.foreach(m => graphs ! MonthData(m._2))
+      grouped.foreach(m => CovidBot.ACTOR_GRAPHS ! MonthData(m._2))
     else {
       val curMonth = (LocalDate.now().getYear, LocalDate.now().getMonthValue)
-      graphs ! MonthData(grouped(curMonth))
+      CovidBot.ACTOR_GRAPHS ! MonthData(grouped(curMonth))
     }
   }
 

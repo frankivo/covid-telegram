@@ -4,7 +4,7 @@ import java.io.File
 import java.nio.file.Paths
 import java.time.LocalDate
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.Actor
 import com.pengrad.telegrambot.model.{MessageEntity, Update}
 import com.pengrad.telegrambot.request.{SendMessage, SendPhoto}
 import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
@@ -24,7 +24,7 @@ object Telegram {
   def isOwner(destination: Long): Boolean = ownerId == destination
 }
 
-class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
+class Telegram() extends Actor {
   val bot = new TelegramBot(Telegram.apiKey)
   self ! TelegramMessage(Telegram.ownerId, "Hello World")
 
@@ -49,9 +49,9 @@ class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
       .foreach(c => {
         c.cmd match {
           case "/hi" => send(c.destination, "Hi!")
-          case "/refresh" => updater ! UpdateAll(Some(c.destination))
-          case "/date" => stats ! GetCasesForDay(c.destination, c.parameter)
-          case "/latest" => stats ! GetCasesForDay(c.destination)
+          case "/refresh" => CovidBot.ACTOR_UPDATER ! UpdateAll(Some(c.destination))
+          case "/date" => CovidBot.ACTOR_STATS ! GetCasesForDay(c.destination, c.parameter)
+          case "/latest" => CovidBot.ACTOR_STATS ! GetCasesForDay(c.destination)
           case "/graph" => handleGraph(c.destination, c.parameter)
 
           case e => self ! TelegramMessage(c.destination, s"Unknown command: $e")

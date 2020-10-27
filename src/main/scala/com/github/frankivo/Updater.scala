@@ -6,12 +6,12 @@ import java.nio.file.{Path, Paths}
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDate, LocalTime}
 
-import akka.actor.{Actor, ActorRef}
+import akka.actor.Actor
 import scalaj.http.Http
 
 case class UpdateAll(destination: Option[Long] = None)
 
-class Updater(stats: ActorRef) extends Actor {
+class Updater() extends Actor {
 
   var lastUpdated: LocalTime = LocalTime.MIN
   val MIN_AGE: Int = 15
@@ -66,6 +66,6 @@ class Updater(stats: ActorRef) extends Actor {
       .map(CsvReader.readFile)
       .toSeq
 
-    stats ! Statistics(data)
+    CovidBot.ACTOR_STATS ! Statistics(data)
   }
 }
