@@ -46,14 +46,7 @@ class CovidStats() extends Actor {
 
     if (date.isEmpty) return caseString(stats.latest())
 
-    val parsedDate =
-      if (date.isEmpty) stats.findMaxDate()
-      else {
-        val parsed = Try(LocalDate.parse(date.get)).toOption
-        if (parsed.isEmpty) return s"Cannot parse date '${date.get}'"
-        parsed.get
-      }
-
+    val parsedDate = Try(LocalDate.parse(date.get)).getOrElse(return s"Cannot parse date '${date.get}'")
     val rec = stats.findDayCount(parsedDate).getOrElse(return s"No data found for $parsedDate")
     caseString(rec)
   }
