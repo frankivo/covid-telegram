@@ -17,9 +17,11 @@ case class TelegramMessage(destination: Long, body: String)
 case class Command(destination: Long, cmd: String, parameter: Option[String])
 
 object Telegram {
+  val apiKey: String = sys.env("TELEGRAM_APIKEY")
+
   val ownerId: Long = sys.env("TELEGRAM_OWNER").toLong
 
-  val apiKey: String = sys.env("TELEGRAM_APIKEY")
+  val broadcastId: Long = sys.env("TELEGRAM_BROADCAST").toLong
 
   def isOwner(destination: Long): Boolean = ownerId == destination
 }
