@@ -1,30 +1,22 @@
 package com.github.frankivo
 
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 
 import akka.actor.Actor
+import com.github.frankivo.Graphs.DIR_MONTHS
 import org.jfree.chart.{ChartFactory, ChartUtils}
 import org.jfree.data.category.DefaultCategoryDataset
 
-import scala.reflect.io.{Directory, File}
+import scala.reflect.io.Directory
 
 case class MonthData(data: Seq[CovidRecord])
 
 object Graphs {
-  val tmpDir: File = new File(Paths.get(System.getProperty("java.io.tmpdir"), "covidbot").toFile)
-
-  def tmpFile(name: String): File = {
-    createTempDir()
-    new File(Paths.get(tmpDir.toString, name).toFile)
-  }
-
-  def deleteDir(): Unit = new Directory(tmpDir.jfile).deleteRecursively()
-
-  def createTempDir(): Unit = new Directory(tmpDir.jfile).createDirectory()
+  val DIR_GRAPHS: Path = Paths.get(CovidBot.DIR_BASE.toString, "graphs")
+  val DIR_MONTHS: Path = Paths.get(DIR_GRAPHS.toString, "month")
 }
 
 class Graphs extends Actor {
-  Graphs.deleteDir()
 
   override def receive: Receive = {
     case e: MonthData => createMonthGraph(e.data)
@@ -40,7 +32,7 @@ class Graphs extends Actor {
   }
 
   def createMonthGraph(data: Seq[CovidRecord]): Unit = {
-    Graphs.tmpFile("month").createDirectory()
+    Directory(DIR_MONTHS.toFile).createDirectory(force = true)
 
     val firstDate = data.head.date
 
@@ -51,8 +43,8 @@ class Graphs extends Actor {
       mapData(data)
     )
 
-    val imgFile = Graphs.tmpFile(s"month/${firstDate.getYear}_${firstDate.getMonthValue}.png")
-    ChartUtils.saveChartAsPNG(imgFile.jfile, barChart, 800, 400)
+    val imgFile = Paths.get(DIR_MONTHS.toString, s"${firstDate.getYear}_${firstDate.getMonthValue}.png")
+    ChartUtils.saveChartAsPNG(imgFile.toFile, barChart, 800, 400)
   }
 
   def camelCase(str: String): String = str.take(1).toUpperCase() + str.drop(1).toLowerCase()
