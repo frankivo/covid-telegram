@@ -4,7 +4,7 @@ import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
 import java.time.format.DateTimeFormatter
-import java.time.{Duration, LocalDate, LocalTime}
+import java.time.{Duration, LocalDate}
 
 import akka.actor.Actor
 import scalaj.http.Http
@@ -13,8 +13,7 @@ case class UpdateAll(destination: Option[Long])
 
 class Updater() extends Actor {
 
-  var lastUpdated: LocalTime = LocalTime.MIN
-  val MIN_AGE: Int = 15
+  private var hasRun = false
   val FIRST_DATE: LocalDate = LocalDate.parse("2020-02-27")
   val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
 
@@ -29,8 +28,10 @@ class Updater() extends Actor {
     downloadAll()
 
     val countAfter = fileCount
-    if (countAfter > countBefore)
+    if (countAfter > countBefore || !hasRun)
       readAllData()
+
+    hasRun = true
 
     s"Done: I have data for $countAfter days"
   }
