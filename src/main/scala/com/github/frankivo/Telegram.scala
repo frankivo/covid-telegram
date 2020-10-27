@@ -28,7 +28,7 @@ object Telegram {
 
 class Telegram() extends Actor {
   val bot = new TelegramBot(Telegram.apiKey)
-  self ! TelegramMessage(Telegram.ownerId, "Hello World")
+  send(TelegramMessage(Telegram.ownerId, "Hello World"))
 
   bot.setUpdatesListener(updates => handleUpdates(updates.asScala.toSeq))
 
@@ -56,7 +56,7 @@ class Telegram() extends Actor {
           case "/latest" => CovidBot.ACTOR_STATS ! GetCasesForDay(c.destination)
           case "/graph" => handleGraph(c.destination, c.parameter)
 
-          case e => self ! TelegramMessage(c.destination, s"Unknown command: $e")
+          case e => send(TelegramMessage(c.destination, s"Unknown command: $e"))
         }
       })
   }
