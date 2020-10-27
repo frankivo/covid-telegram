@@ -75,7 +75,7 @@ class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
       if (file.exists())
         send(dest, file)
       else
-        send(dest, s"No file found for 'month/${year}_$month")
+        send(dest, s"No file found for 'month/${year}_$month'")
     }
     catch {
       case e: Exception => send(dest, "Failed: " + e.getMessage)
