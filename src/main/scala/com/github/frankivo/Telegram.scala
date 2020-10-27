@@ -52,8 +52,7 @@ class Telegram() extends Actor {
         c.cmd match {
           case "/hi" => send(c.destination, "Hi!")
           case "/refresh" => CovidBot.ACTOR_UPDATER ! UpdateAll(Some(c.destination))
-          case "/date" => CovidBot.ACTOR_STATS ! GetCasesForDay(c.destination, c.parameter)
-          case "/latest" => CovidBot.ACTOR_STATS ! GetCasesForDay(c.destination)
+          case "/cases" => CovidBot.ACTOR_STATS ! GetCasesForDay(c.destination, c.parameter)
           case "/graph" => handleGraph(c.destination, c.parameter)
 
           case e => send(TelegramMessage(c.destination, s"Unknown command: $e"))
