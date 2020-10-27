@@ -38,14 +38,20 @@ class CovidStats() extends Actor {
 
   def findDayCount(date: LocalDate): Option[CovidRecord] = stats.data.find(_.date.isEqual(date))
 
+  def findMaxDate(): LocalDate = stats.data.map(_.date).max
+
   def getDayCount(date: Option[String]): String = {
-    val parsedDate = if (date.isEmpty) LocalDate.now().minusDays(1) else {
+    if (stats == null) return "Data has not been pulled yet."
+
+    val parsedDate =
+      if (date.isEmpty) findMaxDate()
+    else
+    {
       val parsed = Try(LocalDate.parse(date.get)).toOption
       if (parsed.isEmpty) return s"Cannot parse date '${date.get}'"
       parsed.get
     }
 
-    if (stats == null) return "Data has not been pulled yet."
     val data = findDayCount(parsedDate)
     if (data.isEmpty) return s"No data found for $parsedDate"
 
