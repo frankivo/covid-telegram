@@ -28,9 +28,11 @@ class Updater() extends Actor {
     downloadAll()
     readAllData()
 
-    val count = DIR_DATA.toFile.listFiles().length
+    val count = fileCount
     s"Done: I have data for $count days"
   }
+
+  def fileCount: Long = DIR_DATA.toFile.listFiles().length
 
   private def downloadAll(): Unit = {
     val dayCounts = Duration.between(FIRST_DATE.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
