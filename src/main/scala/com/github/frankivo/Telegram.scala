@@ -1,6 +1,7 @@
 package com.github.frankivo
 
 import java.io.File
+import java.nio.file.Paths
 import java.time.LocalDate
 
 import akka.actor.{Actor, ActorRef}
@@ -70,14 +71,14 @@ class Telegram(stats: ActorRef, updater: ActorRef) extends Actor {
         else (curYear, curMonth)
       }
 
-      val file = Graphs.tmpFile(s"month/${year}_$month.png").jfile
+      val file = Paths.get(Graphs.DIR_MONTHS.toString, s"${year}_$month.png").toFile
       if (file.exists())
         send(dest, file)
       else
         send(dest, s"No file found for 'month/${year}_$month")
     }
     catch {
-      case e : Exception => send(dest, "Failed: " + e.getMessage)
+      case e: Exception => send(dest, "Failed: " + e.getMessage)
     }
 
   }
