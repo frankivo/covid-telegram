@@ -5,6 +5,7 @@ import java.nio.file.Paths
 import java.time.LocalDate
 
 import akka.actor.Actor
+import com.github.frankivo.Telegram.registerUpdates
 import com.pengrad.telegrambot.model.{MessageEntity, Update}
 import com.pengrad.telegrambot.request.{SendMessage, SendPhoto}
 import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
@@ -23,6 +24,8 @@ object Telegram {
 
   val broadcastId: Long = sys.env("TELEGRAM_BROADCAST").toLong
 
+  def registerUpdates: Boolean = sys.env.getOrElse("TELEGRAM_UPDATES", "true").toBoolean
+
   def isOwner(destination: Long): Boolean = ownerId == destination
 }
 
@@ -30,7 +33,8 @@ class Telegram() extends Actor {
   val bot = new TelegramBot(Telegram.apiKey)
   send(TelegramMessage(Telegram.ownerId, "Hello World"))
 
-  bot.setUpdatesListener(updates => handleUpdates(updates.asScala.toSeq))
+  if (registerUpdates)
+    bot.setUpdatesListener(updates => handleUpdates(updates.asScala.toSeq))
 
   private def handleUpdates(updates: Seq[Update]): Int = {
     val commands = updates
