@@ -70,9 +70,7 @@ class Telegram extends Actor {
 
     try {
       val (year, month) = {
-        if (request.isDefined) {
-          if (request.get.length == 1) (curYear, request.get.toInt)
-        }
+        if (request.isDefined) (curYear, request.get.toInt)
         else (curYear, curMonth)
       }
 
