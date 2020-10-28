@@ -95,9 +95,9 @@ class Telegram extends Actor {
       send(dest, "File not found")
   }
 
-  def send(dest: Long, msg: String): Unit = bot.execute(new SendMessage(dest, msg))
-
   def send(msg: TelegramMessage): Unit = send(msg.destination, msg.body)
+
+  def send(dest: Long, msg: String): Unit = bot.execute(new SendMessage(dest, msg))
 
   def send(dest: Long, photo: File): Unit = bot.execute(new SendPhoto(dest, photo))
 
