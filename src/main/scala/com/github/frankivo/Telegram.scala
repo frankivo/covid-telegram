@@ -23,6 +23,8 @@ object Telegram {
 
   val broadcastId: Long = sys.env("TELEGRAM_BROADCAST").toLong
 
+  def registerUpdates: Boolean = sys.env.getOrElse("TELEGRAM_UPDATES", "true").toBoolean
+
   def isOwner(destination: Long): Boolean = ownerId == destination
 }
 
@@ -30,7 +32,8 @@ class Telegram() extends Actor {
   val bot = new TelegramBot(Telegram.apiKey)
   send(TelegramMessage(Telegram.ownerId, "Hello World"))
 
-  bot.setUpdatesListener(updates => handleUpdates(updates.asScala.toSeq))
+  if (Telegram.registerUpdates)
+    bot.setUpdatesListener(updates => handleUpdates(updates.asScala.toSeq))
 
   private def handleUpdates(updates: Seq[Update]): Int = {
     val commands = updates
