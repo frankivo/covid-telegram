@@ -13,8 +13,6 @@ import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
-case class Command(destination: Long, cmd: String, parameter: Option[String])
-
 object Telegram {
   val apiKey: String = sys.env("TELEGRAM_APIKEY")
 
@@ -28,6 +26,8 @@ object Telegram {
 }
 
 class Telegram extends Actor {
+  case class Command(destination: Long, cmd: String, parameter: Option[String])
+
   val bot = new TelegramBot(Telegram.apiKey)
   send(TelegramMessage(Telegram.ownerId, "Hello World"))
 
