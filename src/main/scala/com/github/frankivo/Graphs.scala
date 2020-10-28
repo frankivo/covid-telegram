@@ -54,7 +54,7 @@ class Graphs extends Actor {
       )
 
       imgFile.delete()
-      ChartUtils.saveChartAsPNG(imgFile, barChart, 800, 400)
+      ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
     }
   }
 
@@ -80,7 +80,7 @@ class Graphs extends Actor {
     )
 
     imgFile.delete()
-    ChartUtils.saveChartAsPNG(imgFile, barChart, 800, 400)
+    ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
   }
 
   def camelCase(str: String): String = str.take(1).toUpperCase() + str.drop(1).toLowerCase()
