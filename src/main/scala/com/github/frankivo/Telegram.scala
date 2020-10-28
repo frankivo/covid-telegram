@@ -28,7 +28,7 @@ object Telegram {
   def isOwner(destination: Long): Boolean = ownerId == destination
 }
 
-class Telegram() extends Actor {
+class Telegram extends Actor {
   val bot = new TelegramBot(Telegram.apiKey)
   send(TelegramMessage(Telegram.ownerId, "Hello World"))
 
@@ -56,22 +56,21 @@ class Telegram() extends Actor {
           case "/hi" => send(c.destination, "Hi!")
           case "/refresh" => CovidBot.ACTOR_UPDATER ! UpdateAll(Some(c.destination))
           case "/cases" => CovidBot.ACTOR_STATS ! GetCasesForDay(c.destination, c.parameter)
-          case "/graph" => handleGraph(c.destination, c.parameter)
+          case "/graph" => sendGraphMonthly(c.destination, c.parameter)
+          case "/weekly" => sendGraphWeekly(c.destination)
 
           case e => send(TelegramMessage(c.destination, s"Unknown command: $e"))
         }
       })
   }
 
-  def handleGraph(dest: Long, request: Option[String]): Unit = {
+  def sendGraphMonthly(dest: Long, request: Option[String]): Unit = {
     val curYear = LocalDate.now().getYear
     val curMonth = LocalDate.now().getMonthValue
 
     try {
       val (year, month) = {
-        if (request.isDefined) {
-          if (request.get.length == 1) (curYear, request.get.toInt)
-        }
+        if (request.isDefined) (curYear, request.get.toInt)
         else (curYear, curMonth)
       }
 
@@ -84,12 +83,19 @@ class Telegram() extends Actor {
     catch {
       case e: Exception => send(dest, "Failed: " + e.getMessage)
     }
-
   }
 
-  def send(dest: Long, msg: String): Unit = bot.execute(new SendMessage(dest, msg))
+  def sendGraphWeekly(dest: Long): Unit = {
+    val file = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile
+    if (file.exists())
+      send(dest, file)
+    else
+      send(dest, "File not found")
+  }
 
   def send(msg: TelegramMessage): Unit = send(msg.destination, msg.body)
+
+  def send(dest: Long, msg: String): Unit = bot.execute(new SendMessage(dest, msg))
 
   def send(dest: Long, photo: File): Unit = bot.execute(new SendPhoto(dest, photo))
 

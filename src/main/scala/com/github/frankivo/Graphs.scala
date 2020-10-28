@@ -9,18 +9,22 @@ import org.jfree.data.category.DefaultCategoryDataset
 
 case class MonthData(data: Seq[CovidRecord])
 
+case class WeekData(data: Seq[(Int, Long)])
+
 object Graphs {
   val DIR_GRAPHS: Path = Paths.get(CovidBot.DIR_BASE.toString, "graphs")
   val DIR_MONTHS: Path = Paths.get(DIR_GRAPHS.toString, "month")
+  val DIR_WEEKS: Path = Paths.get(DIR_GRAPHS.toString, "week")
 }
 
 class Graphs extends Actor {
 
   override def receive: Receive = {
     case e: MonthData => createMonthGraph(e.data)
+    case e: WeekData => createWeeklyGraph(e.data)
   }
 
-  def mapData(data: Seq[CovidRecord]): DefaultCategoryDataset = {
+  def mapMonthData(data: Seq[CovidRecord]): DefaultCategoryDataset = {
     val dataset = new DefaultCategoryDataset
 
     data
@@ -46,12 +50,37 @@ class Graphs extends Actor {
         s"Cases ${camelCase(firstDate.getMonth.toString)} ${firstDate.getYear}",
         "Day",
         "Cases",
-        mapData(data)
+        mapMonthData(data)
       )
 
       imgFile.delete()
       ChartUtils.saveChartAsPNG(imgFile, barChart, 800, 400)
     }
+  }
+
+  def mapWeekData(data: Seq[(Int, Long)]): DefaultCategoryDataset = {
+    val dataset = new DefaultCategoryDataset
+
+    data
+      .sortBy(_._1)
+      .foreach(s => dataset.setValue(s._2.toDouble, "Cases", s._1))
+    dataset
+  }
+
+  def createWeeklyGraph(data: Seq[(Int, Long)]): Unit = {
+    Graphs.DIR_WEEKS.toFile.mkdirs()
+
+    val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile
+
+    val barChart = ChartFactory.createBarChart(
+      s"Cases 2020 per week",
+      "Week",
+      "Cases",
+      mapWeekData(data)
+    )
+
+    imgFile.delete()
+    ChartUtils.saveChartAsPNG(imgFile, barChart, 800, 400)
   }
 
   def camelCase(str: String): String = str.take(1).toUpperCase() + str.drop(1).toLowerCase()
