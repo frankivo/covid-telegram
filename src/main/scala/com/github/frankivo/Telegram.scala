@@ -5,14 +5,13 @@ import java.nio.file.Paths
 import java.time.LocalDate
 
 import akka.actor.Actor
+import com.github.frankivo.messages.{TelegramMessage, UpdateAll}
 import com.pengrad.telegrambot.model.{MessageEntity, Update}
 import com.pengrad.telegrambot.request.{SendMessage, SendPhoto}
 import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
 
 import scala.jdk.CollectionConverters._
 import scala.util.Try
-
-case class TelegramMessage(destination: Long, body: String)
 
 case class Command(destination: Long, cmd: String, parameter: Option[String])
 

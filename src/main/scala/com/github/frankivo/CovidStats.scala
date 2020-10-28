@@ -5,6 +5,7 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 
 import akka.actor.Actor
+import com.github.frankivo.messages.TelegramMessage
 
 import scala.util.Try
 
