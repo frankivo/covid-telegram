@@ -6,7 +6,6 @@ import akka.actor
 import akka.actor.{ActorRef, ActorSystem, Props}
 
 object CovidBot {
-
   val DIR_BASE: Path = Paths.get(System.getProperty("user.home"), ".covidbot")
 
   val AKKA: ActorSystem = ActorSystem()
@@ -18,5 +17,4 @@ object CovidBot {
   def main(args: Array[String]): Unit = {
     new UpdateTimer(ACTOR_UPDATER)
   }
-
 }
