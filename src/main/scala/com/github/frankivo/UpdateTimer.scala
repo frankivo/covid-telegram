@@ -1,10 +1,8 @@
 package com.github.frankivo
 
-import akka.actor.ActorRef
-
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
-class UpdateTimer(updater: ActorRef) {
+class UpdateTimer {
   val UPDATE_INTERVAL_MIN: FiniteDuration = 30.minutes
 
   start()
@@ -16,6 +14,6 @@ class UpdateTimer(updater: ActorRef) {
     }
   }
 
-  def trigger(): Unit = updater ! UpdateAll(None)
+  def trigger(): Unit = CovidBot.ACTOR_UPDATER ! UpdateAll(None)
 
 }
