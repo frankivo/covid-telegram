@@ -5,7 +5,7 @@ import java.nio.file.Paths
 import java.time.LocalDate
 
 import akka.actor.Actor
-import com.github.frankivo.messages.{TelegramMessage, UpdateAll}
+import com.github.frankivo.messages.{RequestCasesForDate, TelegramMessage, UpdateAll}
 import com.pengrad.telegrambot.model.{MessageEntity, Update}
 import com.pengrad.telegrambot.request.{SendMessage, SendPhoto}
 import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
@@ -54,7 +54,7 @@ class Telegram extends Actor {
         c.cmd match {
           case "/hi" => send(c.destination, "Hi!")
           case "/refresh" => CovidBot.ACTOR_UPDATER ! UpdateAll(Some(c.destination))
-          case "/cases" => CovidBot.ACTOR_STATS ! GetCasesForDay(c.destination, c.parameter)
+          case "/cases" => CovidBot.ACTOR_STATS ! RequestCasesForDate(c.destination, c.parameter)
           case "/graph" => sendGraphMonthly(c.destination, c.parameter)
           case "/weekly" => sendGraphWeekly(c.destination)
 

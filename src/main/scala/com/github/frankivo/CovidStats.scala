@@ -5,11 +5,11 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 
 import akka.actor.Actor
-import com.github.frankivo.messages.TelegramMessage
+import com.github.frankivo.messages.{RequestCasesForDate, TelegramMessage}
 
 import scala.util.Try
 
-case class GetCasesForDay(destination: Long, date: Option[String] = None)
+
 
 case class RefreshData(data: Seq[CovidRecord], containsUpdates: Boolean)
 
@@ -18,7 +18,7 @@ class CovidStats extends Actor {
   override def receive: Receive = onMessage(null)
 
   private def onMessage(stats: Statistics): Receive = {
-    case e: GetCasesForDay => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(e.destination, getDayCount(stats, e.date))
+    case e: RequestCasesForDate => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(e.destination, getDayCount(stats, e.date))
     case e: RefreshData => updateStats(stats, e)
   }
 
