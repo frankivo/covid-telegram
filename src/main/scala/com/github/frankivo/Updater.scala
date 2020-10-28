@@ -11,8 +11,7 @@ import scalaj.http.Http
 
 case class UpdateAll(destination: Option[Long])
 
-class Updater() extends Actor {
-
+class Updater extends Actor {
   val FIRST_DATE: LocalDate = LocalDate.parse("2020-02-27")
   val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
 
@@ -29,8 +28,12 @@ class Updater() extends Actor {
     downloadAll()
 
     val countAfter = fileCount
-    if (countAfter > countBefore || !hasRun)
-      readAllData()
+    val hasUpdates = countAfter > countBefore
+
+    if (hasUpdates || !hasRun) {
+      val data = readAllData()
+      CovidBot.ACTOR_STATS ! RefreshData(data, hasUpdates)
+    }
 
     context.become(onMessage(true))
 
@@ -66,14 +69,11 @@ class Updater() extends Actor {
     }
   }
 
-  private def readAllData(): Unit = {
-    val data = DIR_DATA
+  private def readAllData(): Seq[CovidRecord] = {
+    DIR_DATA
       .toFile
       .listFiles()
       .map(CsvReader.readFile)
       .toSeq
-
-    CovidBot.ACTOR_STATS ! Statistics(data)
   }
-
 }

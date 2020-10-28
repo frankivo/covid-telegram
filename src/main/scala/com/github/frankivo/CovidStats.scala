@@ -8,24 +8,28 @@ import scala.util.Try
 
 case class GetCasesForDay(destination: Long, date: Option[String] = None)
 
-class CovidStats() extends Actor {
+case class RefreshData(data: Seq[CovidRecord], containsUpdates: Boolean)
+
+class CovidStats extends Actor {
 
   override def receive: Receive = onMessage(null)
 
   private def onMessage(stats: Statistics): Receive = {
     case e: GetCasesForDay => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(e.destination, getDayCount(stats, e.date))
-    case e: Statistics => updateStats(stats, e)
+    case e: RefreshData => updateStats(stats, e)
   }
 
-  def updateStats(stats: Statistics, newStats: Statistics): Unit = {
+  def updateStats(stats: Statistics, update: RefreshData): Unit = {
     val isFirstRun = stats == null
 
+    val newStats = Statistics(update.data)
     context.become(onMessage(newStats))
 
-    if (newStats != null) {
+    if (newStats != null)
       graphMonths(newStats, isFirstRun)
+
+    if (update.containsUpdates)
       broadcastToday(newStats)
-    }
   }
 
   def graphMonths(stats: Statistics, isFirstRun: Boolean): Unit = {
@@ -58,5 +62,4 @@ class CovidStats() extends Actor {
       .findDayCount(LocalDate.now())
       .foreach(r => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(Telegram.broadcastId, s"There are ${r.count} new cases!"))
   }
-
 }
