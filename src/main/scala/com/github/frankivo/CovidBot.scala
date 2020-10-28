@@ -15,6 +15,6 @@ object CovidBot {
   val ACTOR_TELEGRAM: actor.ActorRef = AKKA.actorOf(Props(new Telegram()))
 
   def main(args: Array[String]): Unit = {
-    new UpdateTimer(ACTOR_UPDATER)
+    new UpdateTimer()
   }
 }
