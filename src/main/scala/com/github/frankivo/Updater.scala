@@ -7,9 +7,8 @@ import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDate}
 
 import akka.actor.Actor
+import com.github.frankivo.messages.UpdateAll
 import scalaj.http.Http
-
-case class UpdateAll(destination: Option[Long])
 
 class Updater extends Actor {
   val FIRST_DATE: LocalDate = LocalDate.parse("2020-02-27")

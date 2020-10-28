@@ -1,5 +1,7 @@
 package com.github.frankivo
 
+import com.github.frankivo.messages.UpdateAll
+
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 
 class UpdateTimer {
@@ -15,5 +17,4 @@ class UpdateTimer {
   }
 
   def trigger(): Unit = CovidBot.ACTOR_UPDATER ! UpdateAll(None)
-
 }
