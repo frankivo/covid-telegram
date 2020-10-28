@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDate}
 
 import akka.actor.Actor
-import com.github.frankivo.messages.{TelegramMessage, UpdateAll}
+import com.github.frankivo.messages.{RefreshData, TelegramMessage, UpdateAll}
 import scalaj.http.Http
 
 class Updater extends Actor {

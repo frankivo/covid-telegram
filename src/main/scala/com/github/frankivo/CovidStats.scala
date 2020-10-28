@@ -5,13 +5,9 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 
 import akka.actor.Actor
-import com.github.frankivo.messages.{RequestCasesForDate, TelegramMessage}
+import com.github.frankivo.messages.{RefreshData, RequestCasesForDate, TelegramMessage}
 
 import scala.util.Try
-
-
-
-case class RefreshData(data: Seq[CovidRecord], containsUpdates: Boolean)
 
 class CovidStats extends Actor {
 
