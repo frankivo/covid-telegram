@@ -5,7 +5,7 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 
 import akka.actor.Actor
-import com.github.frankivo.messages.{RefreshData, RequestCasesForDate, TelegramMessage}
+import com.github.frankivo.messages._
 
 import scala.util.Try
 
@@ -45,10 +45,10 @@ class CovidStats extends Actor {
       .groupBy(r => (r.date.getYear, r.date.getMonthValue))
 
     if (isFirstRun)
-      grouped.foreach(m => CovidBot.ACTOR_GRAPHS ! MonthData(m._2))
+      grouped.foreach(m => CovidBot.ACTOR_GRAPHS ! CreateMonthGraph(m._2))
     else {
       val curMonth = (LocalDate.now().getYear, LocalDate.now().getMonthValue)
-      CovidBot.ACTOR_GRAPHS ! MonthData(grouped(curMonth))
+      CovidBot.ACTOR_GRAPHS ! CreateMonthGraph(grouped(curMonth))
     }
   }
 
@@ -63,7 +63,7 @@ class CovidStats extends Actor {
       .groupBy(d => weekNumber(d.date))
       .map(x => (x._1, x._2.map(c => c.count).sum / x._2.length))
       .toSeq
-    CovidBot.ACTOR_GRAPHS ! WeekData(weekData)
+    CovidBot.ACTOR_GRAPHS ! CreateWeeklyGraph(weekData)
   }
 
   def weekNumber(date: LocalDate): Int = date.get(WeekFields.of(Locale.GERMANY).weekOfYear())
