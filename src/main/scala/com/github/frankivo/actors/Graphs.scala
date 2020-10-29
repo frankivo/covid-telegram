@@ -10,8 +10,6 @@ import com.github.frankivo.model.{DayRecord, WeekRecord}
 import org.jfree.chart.{ChartFactory, ChartUtils}
 import org.jfree.data.category.DefaultCategoryDataset
 
-import scala.util.Try
-
 object Graphs {
   val DIR_GRAPHS: Path = Paths.get(CovidBot.DIR_BASE.toString, "graphs")
   val DIR_MONTHS: Path = Paths.get(DIR_GRAPHS.toString, "month")
