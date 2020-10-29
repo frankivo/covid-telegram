@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 import akka.actor.Actor
 import com.github.frankivo.CovidBot
-import com.github.frankivo.messages.{CreateMonthGraph, CreateWeeklyGraph}
+import com.github.frankivo.messages._
 import com.github.frankivo.model.{DayRecord, WeekRecord}
 import org.jfree.chart.{ChartFactory, ChartUtils}
 import org.jfree.data.category.DefaultCategoryDataset
@@ -21,6 +21,8 @@ class Graphs extends Actor {
   override def receive: Receive = {
     case e: CreateMonthGraph => createMonthGraph(e.data)
     case e: CreateWeeklyGraph => createWeeklyGraph(e.data)
+    case e: RequestMonthGraph => requestMonthGraph(e)
+    case e: RequestWeekGraph => requestWeekGraph(e)
   }
 
   def mapMonthData(data: Seq[DayRecord]): DefaultCategoryDataset = {
@@ -87,5 +89,36 @@ class Graphs extends Actor {
   def isCurrentMonth(date: LocalDate): Boolean = {
     val now = LocalDate.now()
     date.getMonthValue == now.getMonthValue && date.getYear == now.getYear
+  }
+
+  def requestMonthGraph(request: RequestMonthGraph): Unit = {
+    val curYear = LocalDate.now().getYear
+    val curMonth = LocalDate.now().getMonthValue
+
+    try {
+      val (year, month) = {
+        if (request.month.isDefined) (curYear, request.month.get.toInt)
+        else (curYear, curMonth)
+      }
+
+      val file = Paths.get(Graphs.DIR_MONTHS.toString, s"${year}_$month.png").toFile
+      if (file.exists())
+        CovidBot.ACTOR_TELEGRAM ! TelegramImage(request.destination, file)
+      else {
+        val msg = s"No file found for 'month/${year}_$month'"
+        CovidBot.ACTOR_TELEGRAM ! TelegramText(request.destination, msg)
+      }
+    }
+    catch {
+      case _: Exception => CovidBot.ACTOR_TELEGRAM ! TelegramText(request.destination, "Failed!")
+    }
+  }
+
+  def requestWeekGraph(request: RequestWeekGraph): Unit = {
+    val file = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile
+    if (file.exists())
+      CovidBot.ACTOR_TELEGRAM ! TelegramImage(request.destination, file)
+    else
+      CovidBot.ACTOR_TELEGRAM ! TelegramText(request.destination, "File not found")
   }
 }

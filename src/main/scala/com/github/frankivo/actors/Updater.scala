@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDate}
 
 import akka.actor.Actor
-import com.github.frankivo.messages.{RefreshData, TelegramMessage, UpdateAll}
+import com.github.frankivo.messages.{RefreshData, TelegramText, UpdateAll}
 import com.github.frankivo.model.DayRecord
 import com.github.frankivo.{CovidBot, CsvReader}
 import scalaj.http.Http
@@ -23,7 +23,7 @@ class Updater extends Actor {
   private def onMessage(hasRun: Boolean): Receive = {
     case u: UpdateAll =>
       val msg = refresh(hasRun)
-      u.destination.foreach(id => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(id, msg))
+      u.destination.foreach(id => CovidBot.ACTOR_TELEGRAM ! TelegramText(id, msg))
   }
 
   private def refresh(hasRun: Boolean): String = {

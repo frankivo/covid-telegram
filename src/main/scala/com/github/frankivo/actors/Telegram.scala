@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 import akka.actor.Actor
 import com.github.frankivo.CovidBot
-import com.github.frankivo.messages.{RequestCasesForDate, TelegramMessage, UpdateAll}
+import com.github.frankivo.messages.{RequestCasesForDate, RequestMonthGraph, RequestWeekGraph, TelegramImage, TelegramText, UpdateAll}
 import com.pengrad.telegrambot.model.{MessageEntity, Update}
 import com.pengrad.telegrambot.request.{SendMessage, SendPhoto}
 import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
@@ -31,15 +31,20 @@ class Telegram extends Actor {
   case class Command(destination: Long, cmd: String, parameter: Option[String])
 
   val bot = new TelegramBot(Telegram.apiKey)
-  send(TelegramMessage(Telegram.ownerId, "Hello World"))
+  send(TelegramText(Telegram.ownerId, "Hello World"))
+
+  override def receive: Receive = {
+    case txt: TelegramText => send(txt)
+    case img: TelegramImage => send(img)
+  }
 
   if (Telegram.registerUpdates) {
     bot.setUpdatesListener(updates => {
       try handleUpdates(updates.asScala.toSeq)
       catch {
         case e: Exception =>
-          send(Telegram.ownerId, "Error occurred!")
-          send(Telegram.ownerId, e.getMessage)
+          send(TelegramText(Telegram.ownerId, "Error occurred!"))
+          send(TelegramText(Telegram.ownerId, e.getMessage))
       }
       UpdatesListener.CONFIRMED_UPDATES_ALL
     })
@@ -61,57 +66,19 @@ class Telegram extends Actor {
     commands
       .foreach(c => {
         c.cmd match {
-          case "/hi" => send(c.destination, "Hi!")
+          case "/hi" => send(TelegramText(c.destination, "Hi!"))
           case "/refresh" => CovidBot.ACTOR_UPDATER ! UpdateAll(Some(c.destination))
           case "/cases" => CovidBot.ACTOR_STATS ! RequestCasesForDate(c.destination, c.parameter)
-          case "/graph" => sendGraphMonthly(c.destination, c.parameter)
-          case "/weekly" => sendGraphWeekly(c.destination)
+          case "/graph" => CovidBot.ACTOR_GRAPHS ! RequestMonthGraph(c.destination, c.parameter)
+          case "/weekly" => CovidBot.ACTOR_GRAPHS ! RequestWeekGraph(c.destination)
 
-          case e => send(TelegramMessage(c.destination, s"Unknown command: $e"))
+          case e => send(TelegramText(c.destination, s"Unknown command: $e"))
         }
       })
   }
 
-  def sendGraphMonthly(dest: Long, request: Option[String]): Unit = {
-    val curYear = LocalDate.now().getYear
-    val curMonth = LocalDate.now().getMonthValue
+  def send(txt: TelegramText): Unit = bot.execute(new SendMessage(txt.destination, txt.body))
 
-    try {
-      val (year, month) = {
-        if (request.isDefined) (curYear, request.get.toInt)
-        else (curYear, curMonth)
-      }
+  def send(img: TelegramImage): Unit = bot.execute(new SendPhoto(img.destination, img.file))
 
-      val file = Paths.get(Graphs.DIR_MONTHS.toString, s"${
-        year
-      }_$month.png").toFile
-      if (file.exists())
-        send(dest, file)
-      else
-        send(dest, s"No file found for 'month/${
-          year
-        }_$month'")
-    }
-    catch {
-      case e: Exception => send(dest, "Failed: " + e.getMessage)
-    }
-  }
-
-  def sendGraphWeekly(dest: Long): Unit = {
-    val file = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile
-    if (file.exists())
-      send(dest, file)
-    else
-      send(dest, "File not found")
-  }
-
-  def send(msg: TelegramMessage): Unit = send(msg.destination, msg.body)
-
-  def send(dest: Long, msg: String): Unit = bot.execute(new SendMessage(dest, msg))
-
-  def send(dest: Long, photo: File): Unit = bot.execute(new SendPhoto(dest, photo))
-
-  override def receive: Receive = {
-    case msg: TelegramMessage => send(msg)
-  }
 }
