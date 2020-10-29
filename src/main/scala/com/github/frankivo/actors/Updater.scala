@@ -8,7 +8,7 @@ import java.time.{Duration, LocalDate}
 
 import akka.actor.Actor
 import com.github.frankivo.messages.{RefreshData, TelegramMessage, UpdateAll}
-import com.github.frankivo.model.CovidRecord
+import com.github.frankivo.model.DayRecord
 import com.github.frankivo.{CovidBot, CsvReader}
 import scalaj.http.Http
 
@@ -70,7 +70,7 @@ class Updater extends Actor {
     }
   }
 
-  private def readAllData(): Seq[CovidRecord] = {
+  private def readAllData(): Seq[DayRecord] = {
     DIR_DATA
       .toFile
       .listFiles()
