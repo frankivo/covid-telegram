@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 import akka.actor.Actor
 import com.github.frankivo.CovidBot
-import com.github.frankivo.messages.{RequestCasesForDate, TelegramMessage, UpdateAll}
+import com.github.frankivo.messages.{RequestCasesForDate, TelegramText, UpdateAll}
 import com.pengrad.telegrambot.model.{MessageEntity, Update}
 import com.pengrad.telegrambot.request.{SendMessage, SendPhoto}
 import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
@@ -31,7 +31,7 @@ class Telegram extends Actor {
   case class Command(destination: Long, cmd: String, parameter: Option[String])
 
   val bot = new TelegramBot(Telegram.apiKey)
-  send(TelegramMessage(Telegram.ownerId, "Hello World"))
+  send(TelegramText(Telegram.ownerId, "Hello World"))
 
   if (Telegram.registerUpdates) {
     bot.setUpdatesListener(updates => {
@@ -67,7 +67,7 @@ class Telegram extends Actor {
           case "/graph" => sendGraphMonthly(c.destination, c.parameter)
           case "/weekly" => sendGraphWeekly(c.destination)
 
-          case e => send(TelegramMessage(c.destination, s"Unknown command: $e"))
+          case e => send(TelegramText(c.destination, s"Unknown command: $e"))
         }
       })
   }
@@ -105,13 +105,13 @@ class Telegram extends Actor {
       send(dest, "File not found")
   }
 
-  def send(msg: TelegramMessage): Unit = send(msg.destination, msg.body)
+  def send(msg: TelegramText): Unit = send(msg.destination, msg.body)
 
   def send(dest: Long, msg: String): Unit = bot.execute(new SendMessage(dest, msg))
 
   def send(dest: Long, photo: File): Unit = bot.execute(new SendPhoto(dest, photo))
 
   override def receive: Receive = {
-    case msg: TelegramMessage => send(msg)
+    case msg: TelegramText => send(msg)
   }
 }

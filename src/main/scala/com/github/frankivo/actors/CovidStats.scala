@@ -16,7 +16,7 @@ class CovidStats extends Actor {
   override def receive: Receive = onMessage(null)
 
   private def onMessage(stats: DayRecords): Receive = {
-    case e: RequestCasesForDate => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(e.destination, getDayCount(stats, e.date))
+    case e: RequestCasesForDate => CovidBot.ACTOR_TELEGRAM ! TelegramText(e.destination, getDayCount(stats, e.date))
     case e: RefreshData => updateStats(stats, e)
   }
 
@@ -85,6 +85,6 @@ class CovidStats extends Actor {
   def broadcastToday(stats: DayRecords): Unit = {
     stats
       .findDayCount(LocalDate.now())
-      .foreach(r => CovidBot.ACTOR_TELEGRAM ! TelegramMessage(Telegram.broadcastId, s"There are ${r} new cases!"))
+      .foreach(r => CovidBot.ACTOR_TELEGRAM ! TelegramText(Telegram.broadcastId, s"There are ${r} new cases!"))
   }
 }
