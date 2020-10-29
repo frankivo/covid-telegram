@@ -4,6 +4,7 @@ import java.nio.file.{Path, Paths}
 
 import akka.actor
 import akka.actor.{ActorRef, ActorSystem, Props}
+import com.github.frankivo.actors.{CovidStats, Graphs, Telegram, Updater}
 
 object CovidBot {
   val DIR_BASE: Path = Paths.get(System.getProperty("user.home"), ".covidbot")

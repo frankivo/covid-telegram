@@ -1,11 +1,12 @@
-package com.github.frankivo
+package com.github.frankivo.actors
 
 import java.nio.file.{Path, Paths}
 import java.time.LocalDate
 
 import akka.actor.Actor
-import com.github.frankivo.model.CovidRecord
+import com.github.frankivo.CovidBot
 import com.github.frankivo.messages.{CreateMonthGraph, CreateWeeklyGraph}
+import com.github.frankivo.model.CovidRecord
 import org.jfree.chart.{ChartFactory, ChartUtils}
 import org.jfree.data.category.DefaultCategoryDataset
 

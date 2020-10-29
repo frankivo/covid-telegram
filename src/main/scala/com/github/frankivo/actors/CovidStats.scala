@@ -1,12 +1,13 @@
-package com.github.frankivo
+package com.github.frankivo.actors
 
 import java.time.LocalDate
 import java.time.temporal.WeekFields
 import java.util.Locale
 
 import akka.actor.Actor
-import com.github.frankivo.model.{CovidRecord, Statistics}
 import com.github.frankivo.messages._
+import com.github.frankivo.model.{CovidRecord, Statistics}
+import com.github.frankivo.CovidBot
 
 import scala.util.Try
 
