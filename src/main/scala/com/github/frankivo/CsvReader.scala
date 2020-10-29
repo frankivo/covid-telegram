@@ -1,6 +1,6 @@
 package com.github.frankivo
 
-import java.io.{BufferedReader, File}
+import java.io.File
 import java.time.LocalDate
 
 import com.github.frankivo.model.CovidRecord
