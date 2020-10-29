@@ -22,7 +22,7 @@ class Graphs extends Actor {
     case e: CreateMonthGraph => createMonthGraph(e.data)
     case e: CreateWeeklyGraph => createWeeklyGraph(e.data)
     case e: RequestMonthGraph => requestMonthGraph(e)
-    case e: RequestWeekGraph => requestWeekGraph(e.destination)
+    case e: RequestWeekGraph => requestWeekGraph(e)
   }
 
   def mapMonthData(data: Seq[DayRecord]): DefaultCategoryDataset = {
@@ -114,11 +114,11 @@ class Graphs extends Actor {
     }
   }
 
-  def requestWeekGraph(dest: Long): Unit = {
+  def requestWeekGraph(request: RequestWeekGraph): Unit = {
     val file = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile
     if (file.exists())
-      CovidBot.ACTOR_TELEGRAM ! TelegramImage(dest, file)
+      CovidBot.ACTOR_TELEGRAM ! TelegramImage(request.destination, file)
     else
-      CovidBot.ACTOR_TELEGRAM ! TelegramText(dest, "File not found")
+      CovidBot.ACTOR_TELEGRAM ! TelegramText(request.destination, "File not found")
   }
 }
