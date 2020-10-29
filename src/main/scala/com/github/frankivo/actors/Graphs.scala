@@ -6,7 +6,7 @@ import java.time.LocalDate
 import akka.actor.Actor
 import com.github.frankivo.CovidBot
 import com.github.frankivo.messages.{CreateMonthGraph, CreateWeeklyGraph}
-import com.github.frankivo.model.CovidRecord
+import com.github.frankivo.model.{DayRecord, WeekRecord}
 import org.jfree.chart.{ChartFactory, ChartUtils}
 import org.jfree.data.category.DefaultCategoryDataset
 
@@ -23,7 +23,7 @@ class Graphs extends Actor {
     case e: CreateWeeklyGraph => createWeeklyGraph(e.data)
   }
 
-  def mapMonthData(data: Seq[CovidRecord]): DefaultCategoryDataset = {
+  def mapMonthData(data: Seq[DayRecord]): DefaultCategoryDataset = {
     val dataset = new DefaultCategoryDataset
 
     data
@@ -32,7 +32,7 @@ class Graphs extends Actor {
     dataset
   }
 
-  def createMonthGraph(data: Seq[CovidRecord]): Unit = {
+  def createMonthGraph(data: Seq[DayRecord]): Unit = {
     Graphs.DIR_MONTHS.toFile.mkdirs()
 
     val firstDate = data.head.date
@@ -57,16 +57,16 @@ class Graphs extends Actor {
     }
   }
 
-  def mapWeekData(data: Seq[(Int, Long)]): DefaultCategoryDataset = {
+  def mapWeekData(data: Seq[WeekRecord]): DefaultCategoryDataset = {
     val dataset = new DefaultCategoryDataset
 
     data
-      .sortBy(_._1)
-      .foreach(s => dataset.setValue(s._2.toDouble, "Cases", s._1))
+      .sortBy(_.weekNumber)
+      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekNumber))
     dataset
   }
 
-  def createWeeklyGraph(data: Seq[(Int, Long)]): Unit = {
+  def createWeeklyGraph(data: Seq[WeekRecord]): Unit = {
     Graphs.DIR_WEEKS.toFile.mkdirs()
 
     val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile

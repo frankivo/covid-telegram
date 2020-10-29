@@ -1,6 +1,6 @@
 package com.github.frankivo.messages
 
-import com.github.frankivo.model.CovidRecord
+import com.github.frankivo.model.DayRecord
 
 /**
  * Pushes new data.
@@ -8,4 +8,4 @@ import com.github.frankivo.model.CovidRecord
  * @param data The data.
  * @param containsUpdates True if any new data is present.
  */
-case class RefreshData(data: Seq[CovidRecord], containsUpdates: Boolean)
+case class RefreshData(data: Seq[DayRecord], containsUpdates: Boolean)
