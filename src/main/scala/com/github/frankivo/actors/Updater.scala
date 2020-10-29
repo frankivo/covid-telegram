@@ -12,6 +12,8 @@ import com.github.frankivo.model.DayRecord
 import com.github.frankivo.{CovidBot, CsvReader}
 import scalaj.http.Http
 
+import scala.util.Try
+
 class Updater extends Actor {
   val FIRST_DATE: LocalDate = LocalDate.parse("2020-02-27")
   val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
@@ -41,7 +43,7 @@ class Updater extends Actor {
     s"Done: I have data for $countAfter days"
   }
 
-  def fileCount: Long = DIR_DATA.toFile.listFiles().length
+  def fileCount: Long = Try(DIR_DATA.toFile.listFiles().length).getOrElse(0).toLong
 
   private def downloadAll(): Unit = {
     val dayCounts = Duration.between(FIRST_DATE.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
