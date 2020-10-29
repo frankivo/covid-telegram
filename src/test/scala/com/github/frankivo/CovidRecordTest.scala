@@ -2,7 +2,8 @@ package com.github.frankivo
 
 import java.time.LocalDate
 
-import com.github.frankivo.CovidRecordHelper._
+import com.github.frankivo.model.CovidRecord
+import com.github.frankivo.model.CovidRecordHelper._
 import utest.{ArrowAssert, TestSuite, Tests, test}
 
 object CovidRecordTest extends TestSuite {

@@ -2,6 +2,7 @@ package com.github.frankivo
 
 import java.time.LocalDate
 
+import com.github.frankivo.model.CovidRecord
 import utest.{ArrowAssert, TestSuite, Tests, test}
 
 import scala.io.Source

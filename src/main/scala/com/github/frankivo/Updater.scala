@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDate}
 
 import akka.actor.Actor
+import com.github.frankivo.model.CovidRecord
 import com.github.frankivo.messages.{RefreshData, TelegramMessage, UpdateAll}
 import scalaj.http.Http
 

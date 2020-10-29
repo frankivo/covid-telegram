@@ -1,4 +1,4 @@
-package com.github.frankivo
+package com.github.frankivo.model
 
 import java.time.LocalDate
 

@@ -5,6 +5,7 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 
 import akka.actor.Actor
+import com.github.frankivo.model.{CovidRecord, Statistics}
 import com.github.frankivo.messages._
 
 import scala.util.Try
