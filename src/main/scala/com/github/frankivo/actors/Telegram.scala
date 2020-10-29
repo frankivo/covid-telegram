@@ -27,15 +27,25 @@ object Telegram {
 }
 
 class Telegram extends Actor {
+
   case class Command(destination: Long, cmd: String, parameter: Option[String])
 
   val bot = new TelegramBot(Telegram.apiKey)
   send(TelegramMessage(Telegram.ownerId, "Hello World"))
 
-  if (Telegram.registerUpdates)
-    bot.setUpdatesListener(updates => handleUpdates(updates.asScala.toSeq))
+  if (Telegram.registerUpdates) {
+    bot.setUpdatesListener(updates => {
+      try handleUpdates(updates.asScala.toSeq)
+      catch {
+        case e: Exception =>
+          send(Telegram.ownerId, "Error occurred!")
+          send(Telegram.ownerId, e.getMessage)
+      }
+      UpdatesListener.CONFIRMED_UPDATES_ALL
+    })
+  }
 
-  private def handleUpdates(updates: Seq[Update]): Int = {
+  private def handleUpdates(updates: Seq[Update]): Unit = {
     val commands = updates
       .flatMap(u => Some(u.message))
       .filter(u => u.entities != null)
@@ -45,8 +55,6 @@ class Telegram extends Actor {
         Command(u.chat().id(), split.head, Try(split(1)).toOption)
       })
     handleCommands(commands)
-
-    UpdatesListener.CONFIRMED_UPDATES_ALL
   }
 
   private def handleCommands(commands: Seq[Command]): Unit = {
@@ -74,11 +82,15 @@ class Telegram extends Actor {
         else (curYear, curMonth)
       }
 
-      val file = Paths.get(Graphs.DIR_MONTHS.toString, s"${year}_$month.png").toFile
+      val file = Paths.get(Graphs.DIR_MONTHS.toString, s"${
+        year
+      }_$month.png").toFile
       if (file.exists())
         send(dest, file)
       else
-        send(dest, s"No file found for 'month/${year}_$month'")
+        send(dest, s"No file found for 'month/${
+          year
+        }_$month'")
     }
     catch {
       case e: Exception => send(dest, "Failed: " + e.getMessage)
