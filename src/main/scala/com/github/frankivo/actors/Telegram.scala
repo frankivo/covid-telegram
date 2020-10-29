@@ -1,20 +1,18 @@
-package com.github.frankivo
+package com.github.frankivo.actors
 
 import java.io.File
 import java.nio.file.Paths
 import java.time.LocalDate
 
 import akka.actor.Actor
+import com.github.frankivo.CovidBot
+import com.github.frankivo.messages.{RequestCasesForDate, TelegramMessage, UpdateAll}
 import com.pengrad.telegrambot.model.{MessageEntity, Update}
 import com.pengrad.telegrambot.request.{SendMessage, SendPhoto}
 import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
 
 import scala.jdk.CollectionConverters._
 import scala.util.Try
-
-case class TelegramMessage(destination: Long, body: String)
-
-case class Command(destination: Long, cmd: String, parameter: Option[String])
 
 object Telegram {
   val apiKey: String = sys.env("TELEGRAM_APIKEY")
@@ -29,6 +27,8 @@ object Telegram {
 }
 
 class Telegram extends Actor {
+  case class Command(destination: Long, cmd: String, parameter: Option[String])
+
   val bot = new TelegramBot(Telegram.apiKey)
   send(TelegramMessage(Telegram.ownerId, "Hello World"))
 
@@ -55,7 +55,7 @@ class Telegram extends Actor {
         c.cmd match {
           case "/hi" => send(c.destination, "Hi!")
           case "/refresh" => CovidBot.ACTOR_UPDATER ! UpdateAll(Some(c.destination))
-          case "/cases" => CovidBot.ACTOR_STATS ! GetCasesForDay(c.destination, c.parameter)
+          case "/cases" => CovidBot.ACTOR_STATS ! RequestCasesForDate(c.destination, c.parameter)
           case "/graph" => sendGraphMonthly(c.destination, c.parameter)
           case "/weekly" => sendGraphWeekly(c.destination)
 

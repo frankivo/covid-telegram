@@ -1,4 +1,4 @@
-package com.github.frankivo
+package com.github.frankivo.actors
 
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
@@ -7,9 +7,10 @@ import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDate}
 
 import akka.actor.Actor
+import com.github.frankivo.messages.{RefreshData, TelegramMessage, UpdateAll}
+import com.github.frankivo.model.CovidRecord
+import com.github.frankivo.{CovidBot, CsvReader}
 import scalaj.http.Http
-
-case class UpdateAll(destination: Option[Long])
 
 class Updater extends Actor {
   val FIRST_DATE: LocalDate = LocalDate.parse("2020-02-27")

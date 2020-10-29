@@ -1,15 +1,14 @@
-package com.github.frankivo
+package com.github.frankivo.actors
 
 import java.nio.file.{Path, Paths}
 import java.time.LocalDate
 
 import akka.actor.Actor
+import com.github.frankivo.CovidBot
+import com.github.frankivo.messages.{CreateMonthGraph, CreateWeeklyGraph}
+import com.github.frankivo.model.CovidRecord
 import org.jfree.chart.{ChartFactory, ChartUtils}
 import org.jfree.data.category.DefaultCategoryDataset
-
-case class MonthData(data: Seq[CovidRecord])
-
-case class WeekData(data: Seq[(Int, Long)])
 
 object Graphs {
   val DIR_GRAPHS: Path = Paths.get(CovidBot.DIR_BASE.toString, "graphs")
@@ -20,8 +19,8 @@ object Graphs {
 class Graphs extends Actor {
 
   override def receive: Receive = {
-    case e: MonthData => createMonthGraph(e.data)
-    case e: WeekData => createWeeklyGraph(e.data)
+    case e: CreateMonthGraph => createMonthGraph(e.data)
+    case e: CreateWeeklyGraph => createWeeklyGraph(e.data)
   }
 
   def mapMonthData(data: Seq[CovidRecord]): DefaultCategoryDataset = {
