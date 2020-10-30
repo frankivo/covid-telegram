@@ -14,9 +14,19 @@ import scalaj.http.Http
 
 import scala.util.Try
 
+/**
+ * Downloads CSV data from GitHub.
+ * This data contains daily national and municipal covid statistics.
+ */
 class Updater extends Actor {
-  val FIRST_DATE: LocalDate = LocalDate.parse("2020-02-27")
-  val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
+  /**
+   * First cases of Covid in The Netherlands.
+   */
+  val COVID_EPOCH: LocalDate = LocalDate.parse("2020-02-27")
+
+  private val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
+  private val DIR_DATA_NATIONAL: Path = Paths.get(DIR_DATA.toString, "national")
+  private val DIR_DATA_MUNICIPAL: Path = Paths.get(DIR_DATA.toString, "municipal")
 
   override def receive: Receive = onMessage(false)
 
@@ -26,15 +36,20 @@ class Updater extends Actor {
       u.destination.foreach(id => CovidBot.ACTOR_TELEGRAM ! TelegramText(id, msg))
   }
 
+  /**
+   * Downloads all the CSV files that are not yet present on the local filesystem.
+   * @param hasRun True after the first run.
+   * @return Result message.
+   */
   private def refresh(hasRun: Boolean): String = {
-    val countBefore = fileCount
+    val countBefore = fileCount(DIR_DATA_NATIONAL)
     downloadAll()
 
-    val countAfter = fileCount
+    val countAfter = fileCount(DIR_DATA_NATIONAL)
     val hasUpdates = countAfter > countBefore
 
     if (hasUpdates || !hasRun) {
-      val data = readAllData()
+      val data = readAllData(DIR_DATA_NATIONAL)
       CovidBot.ACTOR_STATS ! RefreshData(data, hasUpdates)
     }
 
@@ -43,23 +58,44 @@ class Updater extends Actor {
     s"Done: I have data for $countAfter days"
   }
 
-  def fileCount: Long = Try(DIR_DATA.toFile.listFiles().length).getOrElse(0).toLong
+  /**
+   * Count the amount of files in a given directory.
+   * @param directory The directory to inspect.
+   * @return Count of files. 0 if failed.
+   */
+  def fileCount(directory: Path): Long = Try(directory.toFile.listFiles().length).getOrElse(0).toLong
 
   private def downloadAll(): Unit = {
-    val dayCounts = Duration.between(FIRST_DATE.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
+    val dayCounts = Duration.between(COVID_EPOCH.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
 
     (0 to dayCounts.toInt)
-      .map(FIRST_DATE.plusDays(_))
-      .foreach(downloadDay)
+      .map(COVID_EPOCH.plusDays(_))
+      .map(_.format(DateTimeFormatter.ofPattern("YYYYMMdd")))
+      .foreach(day => {
+        downloadNational(day)
+        downloadMunicipal(day)
+      })
   }
 
-  private def downloadDay(date: LocalDate): Unit = {
-    DIR_DATA.toFile.mkdirs()
+  private def downloadNational(date: String): Unit = {
+    val url = s"https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-national/RIVM_NL_national_$date.csv"
+    download(url, DIR_DATA_NATIONAL)
+  }
 
-    val dateStr = date.format(DateTimeFormatter.ofPattern("YYYYMMdd"))
+  private def downloadMunicipal(date: String): Unit = {
+    val url = s"https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-municipal/RIVM_NL_municipal_$date.csv"
+    download(url, DIR_DATA_MUNICIPAL)
+  }
 
-    val url = s"https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-national/RIVM_NL_national_$dateStr.csv"
-    val fileName = Paths.get(DIR_DATA.toString, url.split("/").last)
+  /**
+   * Downloads a file into a directory.
+   * @param url The file to download.
+   * @param targetDir The directory to store the file in.
+   */
+  private def download(url: String, targetDir: Path): Unit = {
+    targetDir.toFile.mkdirs()
+
+    val fileName = Paths.get(targetDir.toString, url.split("/").last)
 
     if (!fileName.toFile.exists()) {
       val result = Http(url).asString
@@ -72,8 +108,8 @@ class Updater extends Actor {
     }
   }
 
-  private def readAllData(): Seq[DayRecord] = {
-    DIR_DATA
+  private def readAllData(directory: Path): Seq[DayRecord] = {
+    directory
       .toFile
       .listFiles()
       .map(CsvReader.readFile)
