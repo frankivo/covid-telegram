@@ -29,10 +29,10 @@ class Updater extends Actor {
   }
 
   private def refresh(hasRun: Boolean): String = {
-    val countBefore = fileCount
+    val countBefore = fileCount(DIR_DATA_NATIONAL)
     downloadAll()
 
-    val countAfter = fileCount
+    val countAfter = fileCount(DIR_DATA_NATIONAL)
     val hasUpdates = countAfter > countBefore
 
     if (hasUpdates || !hasRun) {
@@ -45,7 +45,7 @@ class Updater extends Actor {
     s"Done: I have data for $countAfter days"
   }
 
-  def fileCount: Long = Try(DIR_DATA.toFile.listFiles().length).getOrElse(0).toLong
+  def fileCount(directory: Path): Long = Try(directory.toFile.listFiles().length).getOrElse(0).toLong
 
   private def downloadAll(): Unit = {
     val dayCounts = Duration.between(FIRST_DATE.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
