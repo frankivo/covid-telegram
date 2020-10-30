@@ -1,12 +1,8 @@
 package com.github.frankivo.actors
 
-import java.io.File
-import java.nio.file.Paths
-import java.time.LocalDate
-
 import akka.actor.Actor
 import com.github.frankivo.CovidBot
-import com.github.frankivo.messages.{RequestCasesForDate, RequestMonthGraph, RequestWeekGraph, TelegramImage, TelegramText, UpdateAll}
+import com.github.frankivo.messages._
 import com.pengrad.telegrambot.model.{MessageEntity, Update}
 import com.pengrad.telegrambot.request.{SendMessage, SendPhoto}
 import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
