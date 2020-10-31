@@ -9,7 +9,7 @@ import java.time.{Duration, LocalDate}
 import akka.actor.Actor
 import com.github.frankivo.messages.{RefreshData, TelegramText, UpdateAll}
 import com.github.frankivo.model.DayRecord
-import com.github.frankivo.{CovidBot, CsvReader}
+import com.github.frankivo.{CovidBot, FileReader}
 import scalaj.http.Http
 
 import scala.util.Try
@@ -49,7 +49,7 @@ class Updater extends Actor {
     val hasUpdates = countAfter > countBefore
 
     if (hasUpdates || !hasRun) {
-      val data = readAllData(DIR_DATA_NATIONAL)
+      val data = readDailyData(DIR_DATA_NATIONAL)
       CovidBot.ACTOR_STATS ! RefreshData(data, hasUpdates)
     }
 
@@ -108,11 +108,11 @@ class Updater extends Actor {
     }
   }
 
-  private def readAllData(directory: Path): Seq[DayRecord] = {
+  private def readDailyData(directory: Path): Seq[DayRecord] = {
     directory
       .toFile
       .listFiles()
-      .map(CsvReader.readFile)
+      .map(FileReader.readDay)
       .toSeq
   }
 }
