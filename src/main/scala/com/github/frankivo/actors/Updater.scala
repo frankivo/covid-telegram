@@ -9,7 +9,7 @@ import java.time.{Duration, LocalDate}
 import akka.actor.Actor
 import com.github.frankivo.messages.{RefreshData, TelegramText, UpdateAll}
 import com.github.frankivo.model.DayRecord
-import com.github.frankivo.{CovidBot, CsvReader}
+import com.github.frankivo.{CovidBot, FileReader}
 import scalaj.http.Http
 
 import scala.util.Try
@@ -112,7 +112,7 @@ class Updater extends Actor {
     directory
       .toFile
       .listFiles()
-      .map(CsvReader.readDay)
+      .map(FileReader.readDay)
       .toSeq
   }
 }

@@ -8,7 +8,7 @@ import com.github.tototoshi.csv.CSVReader
 
 import scala.io.BufferedSource
 
-object CsvReader {
+object FileReader {
   def readDay(source: BufferedSource): DayRecord = readDay(CSVReader.open(source))
 
   def readDay(file: File): DayRecord = readDay(CSVReader.open(file))
