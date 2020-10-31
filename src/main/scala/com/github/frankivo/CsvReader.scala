@@ -4,23 +4,26 @@ import java.io.File
 import java.time.LocalDate
 
 import com.github.frankivo.model.DayRecord
+import com.github.tototoshi.csv.CSVReader
 
-import scala.io.{BufferedSource, Source}
-import scala.util.Try
+import scala.io.BufferedSource
 
 object CsvReader {
-  def readFile(file: File): DayRecord = readFile(Source.fromFile(file))
+  def readDay(source: BufferedSource): DayRecord = readDay(CSVReader.open(source))
 
-  def readFile(source: BufferedSource): DayRecord = {
-    val rec = source
-      .getLines()
-      .toSeq
-      .map(_.split(","))
-      .filter(r => r(1).contains("Totaal"))
-      .map(r => DayRecord(LocalDate.parse(r(0)), Try(r(2).toLong).getOrElse(0)))
+  def readDay(file: File): DayRecord = readDay(CSVReader.open(file))
+
+  def readDay(reader: CSVReader): DayRecord = {
+    val record = reader
+      .allWithHeaders()
+      .filter(row => row("Type") == "Totaal")
+      .map(row => {
+        val date = LocalDate.parse(row("Datum"))
+        val count = row("Aantal").toIntOption.getOrElse(0)
+        DayRecord(date, count)
+      })
       .head
-
-    source.close
-    rec
+    reader.close()
+    record
   }
 }

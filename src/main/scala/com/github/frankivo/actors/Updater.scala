@@ -49,7 +49,7 @@ class Updater extends Actor {
     val hasUpdates = countAfter > countBefore
 
     if (hasUpdates || !hasRun) {
-      val data = readAllData(DIR_DATA_NATIONAL)
+      val data = readDailyData(DIR_DATA_NATIONAL)
       CovidBot.ACTOR_STATS ! RefreshData(data, hasUpdates)
     }
 
@@ -108,11 +108,11 @@ class Updater extends Actor {
     }
   }
 
-  private def readAllData(directory: Path): Seq[DayRecord] = {
+  private def readDailyData(directory: Path): Seq[DayRecord] = {
     directory
       .toFile
       .listFiles()
-      .map(CsvReader.readFile)
+      .map(CsvReader.readDay)
       .toSeq
   }
 }
