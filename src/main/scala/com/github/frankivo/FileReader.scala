@@ -42,6 +42,11 @@ object FileReader {
     record
   }
 
+  /**
+   * Read municipal data from file.
+   * @param source Location of the File.
+   * @return MunicipalRecord with covid data.
+   */
   def readMunicipal(source: BufferedSource): MunicipalRecord = {
     val reader = CSVReader.open(source)
     val data = reader
