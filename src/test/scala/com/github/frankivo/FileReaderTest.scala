@@ -9,7 +9,7 @@ import scala.io.Source
 
 object FileReaderTest extends TestSuite {
   val tests: Tests = Tests {
-    test("read file with total") {
+    test("read national data with total") {
       val file = Source.fromResource("RIVM_NL_national_20200421.csv")
       val actual = FileReader.readDay(file)
 
@@ -17,7 +17,7 @@ object FileReaderTest extends TestSuite {
       actual ==> expected
     }
 
-    test("read file without total") {
+    test("read national data without total") {
       val file = Source.fromResource("RIVM_NL_national_20200227.csv")
       val actual = FileReader.readDay(file)
 
