@@ -38,6 +38,7 @@ class Updater extends Actor {
 
   /**
    * Downloads all the CSV files that are not yet present on the local filesystem.
+   *
    * @param hasRun True after the first run.
    * @return Result message.
    */
@@ -60,6 +61,7 @@ class Updater extends Actor {
 
   /**
    * Count the amount of files in a given directory.
+   *
    * @param directory The directory to inspect.
    * @return Count of files. 0 if failed.
    */
@@ -89,7 +91,8 @@ class Updater extends Actor {
 
   /**
    * Downloads a file into a directory.
-   * @param url The file to download.
+   *
+   * @param url       The file to download.
    * @param targetDir The directory to store the file in.
    */
   private def download(url: String, targetDir: Path): Unit = {
