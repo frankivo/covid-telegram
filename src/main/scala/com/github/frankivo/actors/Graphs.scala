@@ -1,5 +1,6 @@
 package com.github.frankivo.actors
 
+import java.io.File
 import java.nio.file.{Path, Paths}
 import java.time.LocalDate
 
@@ -17,6 +18,9 @@ object Graphs {
   val DIR_WEEKS: Path = Paths.get(DIR_GRAPHS.toString, "week")
 }
 
+/**
+ * Create graphs on request.
+ */
 class Graphs extends Actor {
 
   override def receive: Receive = {
@@ -24,6 +28,7 @@ class Graphs extends Actor {
     case e: CreateRollingGraph => createRollingGraph(e.data)
     case e: CreateWeeklyGraph => createWeeklyGraph(e.data)
     case e: RequestMonthGraph => requestMonthGraph(e)
+    case e: RequestRollingGraph => requestRollingGraph(e)
     case e: RequestWeekGraph => requestWeekGraph(e)
   }
 
@@ -140,11 +145,18 @@ class Graphs extends Actor {
     }
   }
 
+  def requestRollingGraph(request: RequestRollingGraph): Unit = {
+    requestImage(request.destination, Paths.get(Graphs.DIR_GRAPHS.toString, "rolling.png").toFile)
+  }
+
   def requestWeekGraph(request: RequestWeekGraph): Unit = {
-    val file = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile
+    requestImage(request.destination, Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile)
+  }
+
+  def requestImage(destination: Long, file: File): Unit = {
     if (file.exists())
-      CovidBot.ACTOR_TELEGRAM ! TelegramImage(request.destination, file)
+      CovidBot.ACTOR_TELEGRAM ! TelegramImage(destination, file)
     else
-      CovidBot.ACTOR_TELEGRAM ! TelegramText(request.destination, "File not found")
+      CovidBot.ACTOR_TELEGRAM ! TelegramText(destination, "File not found")
   }
 }

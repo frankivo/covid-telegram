@@ -1,8 +1,8 @@
 package com.github.frankivo.messages
 
 /**
- * Request an image for weekly stats.
+ * Request an image for the last 100 days.
  *
  * @param destination The requester.
  */
-case class RequestWeekGraph(destination: Long)
+case class RequestRollingGraph(destination: Long)

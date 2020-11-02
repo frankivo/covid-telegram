@@ -10,6 +10,9 @@ import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
+/**
+ * Handles Telegram environment variables.
+ */
 object Telegram {
   val apiKey: String = sys.env("TELEGRAM_APIKEY")
 
@@ -22,6 +25,10 @@ object Telegram {
   def isOwner(destination: Long): Boolean = ownerId == destination
 }
 
+/**
+ * Connects to the Telegram API.
+ * Sends out broadcast messages and handles requests from Telegram members.
+ */
 class Telegram extends Actor {
 
   case class Command(destination: Long, cmd: String, parameter: Option[String])
@@ -62,10 +69,11 @@ class Telegram extends Actor {
     commands
       .foreach(c => {
         c.cmd match {
-          case "/hi" => send(TelegramText(c.destination, "Hi!"))
-          case "/refresh" => CovidBot.ACTOR_UPDATER ! UpdateAll(Some(c.destination))
           case "/cases" => CovidBot.ACTOR_STATS ! RequestCasesForDate(c.destination, c.parameter)
-          case "/graph" => CovidBot.ACTOR_GRAPHS ! RequestMonthGraph(c.destination, c.parameter)
+          case "/graph" => CovidBot.ACTOR_GRAPHS ! RequestRollingGraph(c.destination)
+          case "/hi" => send(TelegramText(c.destination, "Hi!"))
+          case "/month" => CovidBot.ACTOR_GRAPHS ! RequestMonthGraph(c.destination, c.parameter)
+          case "/refresh" => CovidBot.ACTOR_UPDATER ! UpdateAll(Some(c.destination))
           case "/weekly" => CovidBot.ACTOR_GRAPHS ! RequestWeekGraph(c.destination)
 
           case e => send(TelegramText(c.destination, s"Unknown command: $e"))
