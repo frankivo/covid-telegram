@@ -5,6 +5,7 @@ import java.time.LocalDate
 
 import akka.actor.Actor
 import com.github.frankivo.CovidBot
+import com.github.frankivo.actors.Graphs.DIR_GRAPHS
 import com.github.frankivo.messages._
 import com.github.frankivo.model.{DayRecord, WeekRecord}
 import org.jfree.chart.{ChartFactory, ChartUtils}
@@ -20,9 +21,31 @@ class Graphs extends Actor {
 
   override def receive: Receive = {
     case e: CreateMonthGraph => createMonthGraph(e.data)
+    case e: CreateRollingGraph => createRollingGraph(e.data)
     case e: CreateWeeklyGraph => createWeeklyGraph(e.data)
     case e: RequestMonthGraph => requestMonthGraph(e)
     case e: RequestWeekGraph => requestWeekGraph(e)
+  }
+
+  def createRollingGraph(data: Seq[DayRecord]): Unit = {
+    DIR_GRAPHS.toFile.mkdirs()
+
+    val imgFile = Paths.get(DIR_GRAPHS.toString, "rolling.png").toFile
+    imgFile.delete()
+
+    val dataset = new DefaultCategoryDataset
+    data
+//      .sortBy(_.date)
+      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.date.getDayOfYear))
+
+    val barChart = ChartFactory.createBarChart(
+      s"Cases last 100 days",
+      "Day",
+      "Cases",
+      dataset
+    )
+
+    ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
   }
 
   def mapMonthData(data: Seq[DayRecord]): DefaultCategoryDataset = {

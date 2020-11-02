@@ -29,6 +29,7 @@ class CovidStats extends Actor {
     if (newStats != null) {
       graphMonths(newStats, isFirstRun)
       graphWeeks(newStats)
+      graphRolling(newStats)
     }
 
     if (update.containsUpdates)
@@ -52,6 +53,15 @@ class CovidStats extends Actor {
       val curMonth = (LocalDate.now().getYear, LocalDate.now().getMonthValue)
       CovidBot.ACTOR_GRAPHS ! CreateMonthGraph(grouped(curMonth))
     }
+  }
+
+  def graphRolling(stats: DayRecords): Unit = {
+    val data = stats
+      .data
+      .sortBy(_.date)
+      .takeRight(100)
+
+    CovidBot.ACTOR_GRAPHS ! CreateRollingGraph(data)
   }
 
   /**
