@@ -1,10 +1,12 @@
 package com.github.frankivo.actors
 
+import java.io.File
 import java.nio.file.{Path, Paths}
 import java.time.LocalDate
 
 import akka.actor.Actor
 import com.github.frankivo.CovidBot
+import com.github.frankivo.JFreeChart.{FirstDateAxis, FirstDateBarRenderer}
 import com.github.frankivo.messages._
 import com.github.frankivo.model.{DayRecord, WeekRecord}
 import org.jfree.chart.{ChartFactory, ChartUtils}
@@ -16,22 +18,48 @@ object Graphs {
   val DIR_WEEKS: Path = Paths.get(DIR_GRAPHS.toString, "week")
 }
 
+/**
+ * Create graphs on request.
+ */
 class Graphs extends Actor {
 
   override def receive: Receive = {
     case e: CreateMonthGraph => createMonthGraph(e.data)
+    case e: CreateRollingGraph => createRollingGraph(e.data)
     case e: CreateWeeklyGraph => createWeeklyGraph(e.data)
     case e: RequestMonthGraph => requestMonthGraph(e)
+    case e: RequestRollingGraph => requestRollingGraph(e)
     case e: RequestWeekGraph => requestWeekGraph(e)
   }
 
-  def mapMonthData(data: Seq[DayRecord]): DefaultCategoryDataset = {
-    val dataset = new DefaultCategoryDataset
+  /**
+   * Creates a graph over the last N dates.
+   * Every first day of the month is being highlighted.
+   *
+   * @param data Covid data.
+   */
+  def createRollingGraph(data: Seq[DayRecord]): Unit = {
+    Graphs.DIR_GRAPHS.toFile.mkdirs()
 
+    val imgFile = Paths.get(Graphs.DIR_GRAPHS.toString, "rolling.png").toFile
+    imgFile.delete()
+
+    val dataset = new DefaultCategoryDataset
     data
-      .sortBy(_.date)
-      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.date.getDayOfMonth))
-    dataset
+      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.date))
+
+    val barChart = ChartFactory.createBarChart(
+      s"Cases last ${CovidStats.ROLLING_DAYS} days",
+      "Day",
+      "Cases",
+      dataset
+    )
+
+    barChart.getCategoryPlot.setDomainAxis(new FirstDateAxis)
+    barChart.getCategoryPlot.setRenderer(new FirstDateBarRenderer(data))
+    barChart.removeLegend()
+
+    ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
   }
 
   def createMonthGraph(data: Seq[DayRecord]): Unit = {
@@ -47,25 +75,22 @@ class Graphs extends Actor {
     val doUpdate = !imgFile.exists() || isCurrentMonth(firstDate)
 
     if (doUpdate) {
+      val dataset = new DefaultCategoryDataset
+      data
+        .sortBy(_.date)
+        .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.date.getDayOfMonth))
+
       val barChart = ChartFactory.createBarChart(
         s"Cases ${camelCase(firstDate.getMonth.toString)} ${firstDate.getYear}",
         "Day",
         "Cases",
-        mapMonthData(data)
+        dataset
       )
+      barChart.removeLegend()
 
       imgFile.delete()
       ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
     }
-  }
-
-  def mapWeekData(data: Seq[WeekRecord]): DefaultCategoryDataset = {
-    val dataset = new DefaultCategoryDataset
-
-    data
-      .sortBy(_.weekNumber)
-      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekNumber))
-    dataset
   }
 
   def createWeeklyGraph(data: Seq[WeekRecord]): Unit = {
@@ -73,12 +98,18 @@ class Graphs extends Actor {
 
     val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile
 
+    val dataset = new DefaultCategoryDataset
+    data
+      .sortBy(_.weekNumber)
+      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekNumber))
+
     val barChart = ChartFactory.createBarChart(
       s"Cases 2020 per week",
       "Week",
       "Cases",
-      mapWeekData(data)
+      dataset
     )
+    barChart.removeLegend()
 
     imgFile.delete()
     ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
@@ -114,11 +145,18 @@ class Graphs extends Actor {
     }
   }
 
+  def requestRollingGraph(request: RequestRollingGraph): Unit = {
+    requestImage(request.destination, Paths.get(Graphs.DIR_GRAPHS.toString, "rolling.png").toFile)
+  }
+
   def requestWeekGraph(request: RequestWeekGraph): Unit = {
-    val file = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile
+    requestImage(request.destination, Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile)
+  }
+
+  def requestImage(destination: Long, file: File): Unit = {
     if (file.exists())
-      CovidBot.ACTOR_TELEGRAM ! TelegramImage(request.destination, file)
+      CovidBot.ACTOR_TELEGRAM ! TelegramImage(destination, file)
     else
-      CovidBot.ACTOR_TELEGRAM ! TelegramText(request.destination, "File not found")
+      CovidBot.ACTOR_TELEGRAM ! TelegramText(destination, "File not found")
   }
 }

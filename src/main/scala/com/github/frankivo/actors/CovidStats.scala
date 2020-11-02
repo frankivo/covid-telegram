@@ -5,11 +5,15 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 
 import akka.actor.Actor
+import com.github.frankivo.CovidBot
 import com.github.frankivo.messages._
 import com.github.frankivo.model.{DayRecord, DayRecords, WeekRecord}
-import com.github.frankivo.CovidBot
 
 import scala.util.Try
+
+object CovidStats {
+  val ROLLING_DAYS: Int = 100
+}
 
 class CovidStats extends Actor {
 
@@ -29,6 +33,7 @@ class CovidStats extends Actor {
     if (newStats != null) {
       graphMonths(newStats, isFirstRun)
       graphWeeks(newStats)
+      graphRolling(newStats)
     }
 
     if (update.containsUpdates)
@@ -52,6 +57,20 @@ class CovidStats extends Actor {
       val curMonth = (LocalDate.now().getYear, LocalDate.now().getMonthValue)
       CovidBot.ACTOR_GRAPHS ! CreateMonthGraph(grouped(curMonth))
     }
+  }
+
+  /**
+   * Creates a graph of the last N days.
+   *
+   * @param stats All covid daily data.
+   */
+  def graphRolling(stats: DayRecords): Unit = {
+    val data = stats
+      .data
+      .sortBy(_.date)
+      .takeRight(CovidStats.ROLLING_DAYS)
+
+    CovidBot.ACTOR_GRAPHS ! CreateRollingGraph(data)
   }
 
   /**
