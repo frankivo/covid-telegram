@@ -1,7 +1,7 @@
 package com.github.frankivo.messages
 
 /**
- * Request an image for the last 100 days.
+ * Request an image for the last N days.
  *
  * @param destination The requester.
  */

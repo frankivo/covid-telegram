@@ -11,6 +11,10 @@ import com.github.frankivo.model.{DayRecord, DayRecords, WeekRecord}
 
 import scala.util.Try
 
+object CovidStats {
+  val ROLLING_DAYS: Int = 100
+}
+
 class CovidStats extends Actor {
 
   override def receive: Receive = onMessage(null)
@@ -56,7 +60,7 @@ class CovidStats extends Actor {
   }
 
   /**
-   * Creates a graph of the last 100 days.
+   * Creates a graph of the last N days.
    *
    * @param stats All covid daily data.
    */
@@ -64,7 +68,7 @@ class CovidStats extends Actor {
     val data = stats
       .data
       .sortBy(_.date)
-      .takeRight(100)
+      .takeRight(CovidStats.ROLLING_DAYS)
 
     CovidBot.ACTOR_GRAPHS ! CreateRollingGraph(data)
   }

@@ -10,7 +10,7 @@ import org.jfree.chart.renderer.category.BarRenderer
  * Paints every first day of the month in a different colour.
  * @param data Covid data.
  */
-class FirstDatePainter(data: Seq[DayRecord]) extends BarRenderer {
+class FirstDateBarRenderer(data: Seq[DayRecord]) extends BarRenderer {
   override def getItemPaint(row: Int, column: Int): Paint = {
     if (data(column).date.getDayOfMonth == 1) Color.RED
     else Color.ORANGE

@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 import akka.actor.Actor
 import com.github.frankivo.CovidBot
-import com.github.frankivo.JFreeChart.{FirstDateAxis, FirstDatePainter}
+import com.github.frankivo.JFreeChart.{FirstDateAxis, FirstDateBarRenderer}
 import com.github.frankivo.messages._
 import com.github.frankivo.model.{DayRecord, WeekRecord}
 import org.jfree.chart.{ChartFactory, ChartUtils}
@@ -49,14 +49,14 @@ class Graphs extends Actor {
       .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.date))
 
     val barChart = ChartFactory.createBarChart(
-      s"Cases last 100 days",
+      s"Cases last ${CovidStats.ROLLING_DAYS} days",
       "Day",
       "Cases",
       dataset
     )
 
     barChart.getCategoryPlot.setDomainAxis(new FirstDateAxis)
-    barChart.getCategoryPlot.setRenderer(new FirstDatePainter(data))
+    barChart.getCategoryPlot.setRenderer(new FirstDateBarRenderer(data))
     barChart.removeLegend()
 
     ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
