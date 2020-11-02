@@ -82,7 +82,7 @@ class CovidStats extends Actor {
       .toSeq
     CovidBot.ACTOR_GRAPHS ! CreateWeeklyGraph(weekData)
   }
-  
+
   def weekNumber(date: LocalDate): Int = date.get(WeekFields.of(Locale.GERMANY).weekOfYear())
 
   def getDayCount(stats: DayRecords, date: Option[String]): String = {

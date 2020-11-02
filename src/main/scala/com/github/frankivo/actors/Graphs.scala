@@ -57,15 +57,6 @@ class Graphs extends Actor {
     ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
   }
 
-  def mapMonthData(data: Seq[DayRecord]): DefaultCategoryDataset = {
-    val dataset = new DefaultCategoryDataset
-
-    data
-      .sortBy(_.date)
-      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.date.getDayOfMonth))
-    dataset
-  }
-
   def createMonthGraph(data: Seq[DayRecord]): Unit = {
     Graphs.DIR_MONTHS.toFile.mkdirs()
 
@@ -79,25 +70,22 @@ class Graphs extends Actor {
     val doUpdate = !imgFile.exists() || isCurrentMonth(firstDate)
 
     if (doUpdate) {
+      val dataset = new DefaultCategoryDataset
+      data
+        .sortBy(_.date)
+        .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.date.getDayOfMonth))
+
       val barChart = ChartFactory.createBarChart(
         s"Cases ${camelCase(firstDate.getMonth.toString)} ${firstDate.getYear}",
         "Day",
         "Cases",
-        mapMonthData(data)
+        dataset
       )
+      barChart.removeLegend()
 
       imgFile.delete()
       ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
     }
-  }
-
-  def mapWeekData(data: Seq[WeekRecord]): DefaultCategoryDataset = {
-    val dataset = new DefaultCategoryDataset
-
-    data
-      .sortBy(_.weekNumber)
-      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekNumber))
-    dataset
   }
 
   def createWeeklyGraph(data: Seq[WeekRecord]): Unit = {
@@ -105,12 +93,18 @@ class Graphs extends Actor {
 
     val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile
 
+    val dataset = new DefaultCategoryDataset
+    data
+      .sortBy(_.weekNumber)
+      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekNumber))
+
     val barChart = ChartFactory.createBarChart(
       s"Cases 2020 per week",
       "Week",
       "Cases",
-      mapWeekData(data)
+      dataset
     )
+    barChart.removeLegend()
 
     imgFile.delete()
     ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
