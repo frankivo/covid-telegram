@@ -5,6 +5,7 @@ import java.time.LocalDate
 
 import akka.actor.Actor
 import com.github.frankivo.CovidBot
+import com.github.frankivo.JFreeChart.{FirstDateAxis, FirstDatePainter}
 import com.github.frankivo.messages._
 import com.github.frankivo.model.{DayRecord, WeekRecord}
 import org.jfree.chart.{ChartFactory, ChartUtils}
@@ -26,6 +27,12 @@ class Graphs extends Actor {
     case e: RequestWeekGraph => requestWeekGraph(e)
   }
 
+  /**
+   * Creates a graph over the last N dates.
+   * Every first day of the month is being highlighted.
+   *
+   * @param data Covid data.
+   */
   def createRollingGraph(data: Seq[DayRecord]): Unit = {
     Graphs.DIR_GRAPHS.toFile.mkdirs()
 
@@ -34,7 +41,7 @@ class Graphs extends Actor {
 
     val dataset = new DefaultCategoryDataset
     data
-      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.date.getDayOfYear))
+      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.date))
 
     val barChart = ChartFactory.createBarChart(
       s"Cases last 100 days",
@@ -42,6 +49,10 @@ class Graphs extends Actor {
       "Cases",
       dataset
     )
+
+    barChart.getCategoryPlot.setDomainAxis(new FirstDateAxis)
+    barChart.getCategoryPlot.setRenderer(new FirstDatePainter(data))
+    barChart.removeLegend()
 
     ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
   }
