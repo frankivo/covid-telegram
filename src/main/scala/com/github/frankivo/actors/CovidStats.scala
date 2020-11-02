@@ -5,9 +5,9 @@ import java.time.temporal.WeekFields
 import java.util.Locale
 
 import akka.actor.Actor
+import com.github.frankivo.CovidBot
 import com.github.frankivo.messages._
 import com.github.frankivo.model.{DayRecord, DayRecords, WeekRecord}
-import com.github.frankivo.CovidBot
 
 import scala.util.Try
 
@@ -55,6 +55,11 @@ class CovidStats extends Actor {
     }
   }
 
+  /**
+   * Creates a graph of the last 100 days.
+   *
+   * @param stats All covid daily data.
+   */
   def graphRolling(stats: DayRecords): Unit = {
     val data = stats
       .data
@@ -77,7 +82,7 @@ class CovidStats extends Actor {
       .toSeq
     CovidBot.ACTOR_GRAPHS ! CreateWeeklyGraph(weekData)
   }
-
+  
   def weekNumber(date: LocalDate): Int = date.get(WeekFields.of(Locale.GERMANY).weekOfYear())
 
   def getDayCount(stats: DayRecords, date: Option[String]): String = {
