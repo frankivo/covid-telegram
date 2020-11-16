@@ -1,11 +1,6 @@
-FROM mozilla/sbt as builder
+FROM oosterhuisf/sbt:1.4.3 as compiler
 WORKDIR /root
-COPY build.sbt .
 COPY project/build.properties project/plugins.sbt ./project/
-RUN sbt compile
-
-FROM builder as compiler
-WORKDIR /root
 COPY build.sbt .
 COPY src src
 RUN sbt assembly
