@@ -2,7 +2,7 @@ name := "covid-telegram"
 
 version := "0.1"
 
-scalaVersion := "2.13.3"
+scalaVersion := "2.13.4"
 
 libraryDependencies += "com.github.pengrad" % "java-telegram-bot-api" % "5.0.0"
 libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.6"
