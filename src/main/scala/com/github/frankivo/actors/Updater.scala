@@ -14,15 +14,25 @@ import scalaj.http.Http
 
 import scala.util.Try
 
+object Updater {
+  /**
+   * First cases of Covid in The Netherlands.
+   */
+  val COVID_EPOCH: LocalDate = LocalDate.parse("2020-02-27")
+
+  def downloadDates(start: LocalDate = COVID_EPOCH): Seq[LocalDate] = {
+    val dayCounts = Duration.between(start.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
+
+    (0 to dayCounts.toInt)
+      .map(start.plusDays(_))
+  }
+}
+
 /**
  * Downloads CSV data from GitHub.
  * This data contains daily national and municipal covid statistics.
  */
 class Updater extends Actor {
-  /**
-   * First cases of Covid in The Netherlands.
-   */
-  val COVID_EPOCH: LocalDate = LocalDate.parse("2020-02-27")
 
   private val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
   private val DIR_DATA_NATIONAL: Path = Paths.get(DIR_DATA.toString, "national")
@@ -68,10 +78,7 @@ class Updater extends Actor {
   def fileCount(directory: Path): Long = Try(directory.toFile.listFiles().length).getOrElse(0).toLong
 
   private def downloadAll(): Unit = {
-    val dayCounts = Duration.between(COVID_EPOCH.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
-
-    (0 to dayCounts.toInt)
-      .map(COVID_EPOCH.plusDays(_))
+    Updater.downloadDates()
       .map(_.format(DateTimeFormatter.ofPattern("YYYYMMdd")))
       .foreach(day => {
         downloadNational(day)
@@ -80,6 +87,7 @@ class Updater extends Actor {
   }
 
   private def downloadNational(date: String): Unit = {
+    println(date)
     val url = s"https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-national/RIVM_NL_national_$date.csv"
     download(url, DIR_DATA_NATIONAL)
   }
@@ -108,6 +116,7 @@ class Updater extends Actor {
         out.write(result.body.getBytes(StandardCharsets.UTF_8))
         out.close()
       }
+      else println(s"Could not download: $url")
     }
   }
 
