@@ -1,9 +1,8 @@
-package com.github.frankivo
+package com.github.frankivo.model
+
+import utest.{ArrowAssert, TestSuite, Tests, test}
 
 import java.time.LocalDate
-
-import com.github.frankivo.model.{DayRecord, DayRecords}
-import utest.{ArrowAssert, TestSuite, Tests, test}
 
 object DayRecordsTest extends TestSuite {
   val testData: DayRecords = DayRecords(
