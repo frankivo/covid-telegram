@@ -26,6 +26,10 @@ object Updater {
     (0 to dayCounts.toInt)
       .map(start.plusDays(_))
   }
+
+  def formatDate(date: LocalDate) : String = {
+    date.format(DateTimeFormatter.ofPattern("YYYYMMdd"))
+  }
 }
 
 /**
@@ -79,7 +83,7 @@ class Updater extends Actor {
 
   private def downloadAll(): Unit = {
     Updater.downloadDates()
-      .map(_.format(DateTimeFormatter.ofPattern("YYYYMMdd")))
+      .map(Updater.formatDate)
       .foreach(day => {
         downloadNational(day)
         downloadMunicipal(day)
