@@ -100,7 +100,6 @@ class Updater extends Actor {
   }
 
   private def downloadNational(date: String): Unit = {
-    println(date)
     val url = s"https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-national/RIVM_NL_national_$date.csv"
     download(url, DIR_DATA_NATIONAL)
   }
@@ -122,8 +121,9 @@ class Updater extends Actor {
     val fileName = Paths.get(targetDir.toString, url.split("/").last)
 
     if (!fileName.toFile.exists()) {
-      val result = Http(url).asString
+      println(s"Download $url")
 
+      val result = Http(url).asString
       if (result.isSuccess) {
         val out = new FileOutputStream(fileName.toFile)
         out.write(result.body.getBytes(StandardCharsets.UTF_8))
@@ -131,6 +131,7 @@ class Updater extends Actor {
       }
       else println(s"Could not download: $url")
     }
+    else println(s"Already exists: $fileName")
   }
 
   private def readDailyData(): Seq[DayRecord] = {
