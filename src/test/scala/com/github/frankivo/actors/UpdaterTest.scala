@@ -7,11 +7,16 @@ import java.time.LocalDate
 object UpdaterTest extends TestSuite {
 
   val tests: Tests = Tests {
-    test("get dates for a week") {
-      val dates: Seq[LocalDate] = Updater.downloadDates(LocalDate.now.minusWeeks(1))
+    test("week should return 8 days") {
+      Updater
+        .downloadDates(LocalDate.now.minusWeeks(1))
+        .length ==> 8 // Week ago + today
+    }
 
-      dates.length ==> 8 // Week ago + today
-      dates.last ==> LocalDate.now()
+    test("last date should be today") {
+      Updater
+        .downloadDates()
+        .last ==> LocalDate.now()
     }
   }
 
