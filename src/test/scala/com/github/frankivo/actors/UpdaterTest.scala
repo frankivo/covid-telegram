@@ -10,13 +10,13 @@ object UpdaterTest extends TestSuite {
   val tests: Tests = Tests {
     test("week should return 8 days") {
       Updater
-        .downloadDates(LocalDate.now.minusWeeks(1))
+        .dateRange(LocalDate.now.minusWeeks(1))
         .length ==> 8 // Week ago + today
     }
 
     test("last date should be today") {
       Updater
-        .downloadDates()
+        .dateRange()
         .last ==> LocalDate.now()
     }
 

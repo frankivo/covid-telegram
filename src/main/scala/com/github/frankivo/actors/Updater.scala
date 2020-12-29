@@ -19,16 +19,26 @@ object Updater {
    */
   val COVID_EPOCH: LocalDate = LocalDate.parse("2020-02-27")
 
-  def downloadDates(start: LocalDate = COVID_EPOCH): Seq[LocalDate] = {
+  /**
+   * Get a date range from start to today.
+   *
+   * @param start Start date.
+   * @return Date range.
+   */
+  def dateRange(start: LocalDate = COVID_EPOCH): Seq[LocalDate] = {
     val dayCounts = Duration.between(start.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
 
     (0 to dayCounts.toInt)
       .map(start.plusDays(_))
   }
 
-  def formatDate(date: LocalDate) : String = {
-    date.format(DateTimeFormatter.ofPattern("YYYYMMdd"))
-  }
+  /**
+   * Format a date.
+   *
+   * @param date Date to format.
+   * @return Formatted String.
+   */
+  def formatDate(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 }
 
 /**
@@ -81,7 +91,7 @@ class Updater extends Actor {
   def fileCount(directory: Path): Long = Try(directory.toFile.listFiles().length).getOrElse(0).toLong
 
   private def downloadAll(): Unit = {
-    Updater.downloadDates()
+    Updater.dateRange()
       .map(Updater.formatDate)
       .foreach(day => {
         downloadNational(day)
