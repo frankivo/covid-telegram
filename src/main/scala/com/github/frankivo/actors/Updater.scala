@@ -1,28 +1,51 @@
 package com.github.frankivo.actors
 
-import java.io.FileOutputStream
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Path, Paths}
-import java.time.format.DateTimeFormatter
-import java.time.{Duration, LocalDate}
-
 import akka.actor.Actor
 import com.github.frankivo.messages.{RefreshData, TelegramText, UpdateAll}
 import com.github.frankivo.model.DayRecord
 import com.github.frankivo.{CovidBot, FileReader}
 import scalaj.http.Http
 
+import java.io.FileOutputStream
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Path, Paths}
+import java.time.format.DateTimeFormatter
+import java.time.{Duration, LocalDate}
 import scala.util.Try
+
+object Updater {
+  /**
+   * First cases of Covid in The Netherlands.
+   */
+  val COVID_EPOCH: LocalDate = LocalDate.parse("2020-02-27")
+
+  /**
+   * Get a date range from start to today.
+   *
+   * @param start Start date.
+   * @return Date range.
+   */
+  def dateRange(start: LocalDate = COVID_EPOCH): Seq[LocalDate] = {
+    val dayCounts = Duration.between(start.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
+
+    (0 to dayCounts.toInt)
+      .map(start.plusDays(_))
+  }
+
+  /**
+   * Format a date.
+   *
+   * @param date Date to format.
+   * @return Formatted String.
+   */
+  def formatDate(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+}
 
 /**
  * Downloads CSV data from GitHub.
  * This data contains daily national and municipal covid statistics.
  */
 class Updater extends Actor {
-  /**
-   * First cases of Covid in The Netherlands.
-   */
-  val COVID_EPOCH: LocalDate = LocalDate.parse("2020-02-27")
 
   private val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
   private val DIR_DATA_NATIONAL: Path = Paths.get(DIR_DATA.toString, "national")
@@ -68,11 +91,8 @@ class Updater extends Actor {
   def fileCount(directory: Path): Long = Try(directory.toFile.listFiles().length).getOrElse(0).toLong
 
   private def downloadAll(): Unit = {
-    val dayCounts = Duration.between(COVID_EPOCH.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
-
-    (0 to dayCounts.toInt)
-      .map(COVID_EPOCH.plusDays(_))
-      .map(_.format(DateTimeFormatter.ofPattern("YYYYMMdd")))
+    Updater.dateRange()
+      .map(Updater.formatDate)
       .foreach(day => {
         downloadNational(day)
         downloadMunicipal(day)
@@ -101,14 +121,17 @@ class Updater extends Actor {
     val fileName = Paths.get(targetDir.toString, url.split("/").last)
 
     if (!fileName.toFile.exists()) {
-      val result = Http(url).asString
+      println(s"Download $url")
 
+      val result = Http(url).asString
       if (result.isSuccess) {
         val out = new FileOutputStream(fileName.toFile)
         out.write(result.body.getBytes(StandardCharsets.UTF_8))
         out.close()
       }
+      else println(s"Could not download: $url")
     }
+    else println(s"Already exists: $fileName")
   }
 
   private def readDailyData(): Seq[DayRecord] = {
