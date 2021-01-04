@@ -46,7 +46,7 @@ class Graphs extends Actor {
   private def createRollingGraph(data: Seq[DayRecord]): Unit = {
     Graphs.DIR_GRAPHS.toFile.mkdirs()
 
-    val imgFile = Paths.get(Graphs.DIR_GRAPHS.toString, "rolling.png").toFile
+    val imgFile = Paths.get(Graphs.DIR_GRAPHS.toString, s"last_${CovidStats.ROLLING_DAYS}_days.png").toFile
     imgFile.delete()
 
     val dataset = new DefaultCategoryDataset
