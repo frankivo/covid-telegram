@@ -197,6 +197,7 @@ class Graphs extends Actor {
   }
 
   private def requestImage(destination: Long, file: File): Unit = {
+    println(s"Request: ${file.toString}")
     if (file.exists())
       CovidBot.ACTOR_TELEGRAM ! TelegramImage(destination, file)
     else
