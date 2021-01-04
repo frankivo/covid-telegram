@@ -100,8 +100,8 @@ class Graphs extends Actor {
 
     val dataset = new DefaultCategoryDataset
     data
-      .sortBy(_.weekNumber)
-      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekNumber))
+      .sortBy(_.weekOfYear)
+      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
 
     val barChart = ChartFactory.createBarChart(
       s"Cases 2020 per week",
