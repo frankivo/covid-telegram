@@ -160,7 +160,8 @@ class Graphs extends Actor {
   }
 
   private def requestWeekGraph(request: RequestWeekGraph): Unit = {
-    requestImage(request.destination, Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile)
+    val year = request.year.getOrElse(LocalDate.now.getYear.toString)
+    requestImage(request.destination, Paths.get(Graphs.DIR_WEEKS.toString, s"$year.png").toFile)
   }
 
   private def requestImage(destination: Long, file: File): Unit = {
