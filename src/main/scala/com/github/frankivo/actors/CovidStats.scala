@@ -23,7 +23,7 @@ class CovidStats extends Actor {
     case e: RefreshData => updateStats(stats, e)
   }
 
-  def updateStats(stats: DayRecords, update: RefreshData): Unit = {
+  private def updateStats(stats: DayRecords, update: RefreshData): Unit = {
     val isFirstRun = stats == null
 
     val newStats = DayRecords(update.data)
@@ -45,7 +45,7 @@ class CovidStats extends Actor {
    * @param stats      All covid daily data.
    * @param isFirstRun Will generate all months if false. Otherwise only the current month.
    */
-  def graphMonths(stats: DayRecords, isFirstRun: Boolean): Unit = {
+  private def graphMonths(stats: DayRecords, isFirstRun: Boolean): Unit = {
     val grouped = stats
       .data
       .groupBy(r => (r.date.getYear, r.date.getMonthValue))
@@ -63,7 +63,7 @@ class CovidStats extends Actor {
    *
    * @param stats All covid daily data.
    */
-  def graphRolling(stats: DayRecords): Unit = {
+  private def graphRolling(stats: DayRecords): Unit = {
     val data = stats
       .data
       .sortBy(_.date)
@@ -77,18 +77,18 @@ class CovidStats extends Actor {
    *
    * @param stats All covid daily data.
    */
-  def graphWeeks(stats: DayRecords): Unit = {
+  private def graphWeeks(stats: DayRecords): Unit = {
     val weekData = stats
       .data
-      .groupBy(d => weekNumber(d.date))
-      .map(x => WeekRecord(x._1, x._2.map(c => c.count).sum / x._2.length))
+      .groupBy(d => (d.date.getYear, weekNumber(d.date)))
+      .map(x => WeekRecord(year = x._1._1, weekOfYear = x._1._2, count = x._2.map(c => c.count).sum / x._2.length))
       .toSeq
     CovidBot.ACTOR_GRAPHS ! CreateWeeklyGraph(weekData)
   }
 
-  def weekNumber(date: LocalDate): Int = date.get(WeekFields.of(Locale.GERMANY).weekOfYear())
+  private def weekNumber(date: LocalDate): Int = date.get(WeekFields.of(Locale.GERMANY).weekOfYear())
 
-  def getDayCount(stats: DayRecords, date: Option[String]): String = {
+  private def getDayCount(stats: DayRecords, date: Option[String]): String = {
     if (stats == null) return "Data has not been pulled yet."
 
     if (date.isEmpty) return caseString(stats.latest())
@@ -98,9 +98,9 @@ class CovidStats extends Actor {
     caseString(DayRecord(parsedDate, cases))
   }
 
-  def caseString(rec: DayRecord): String = s"Cases for ${rec.date}: ${rec.count}"
+  private def caseString(rec: DayRecord): String = s"Cases for ${rec.date}: ${rec.count}"
 
-  def broadcastToday(stats: DayRecords): Unit = {
+  private def broadcastToday(stats: DayRecords): Unit = {
     stats
       .findDayCount(LocalDate.now())
       .foreach(r => CovidBot.ACTOR_TELEGRAM ! TelegramText(Telegram.broadcastId, s"There are ${r} new cases!"))

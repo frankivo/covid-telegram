@@ -16,6 +16,14 @@ object Graphs {
   val DIR_GRAPHS: Path = Paths.get(CovidBot.DIR_BASE.toString, "graphs")
   val DIR_MONTHS: Path = Paths.get(DIR_GRAPHS.toString, "month")
   val DIR_WEEKS: Path = Paths.get(DIR_GRAPHS.toString, "week")
+
+  val IMG_WIDTH: Int = 1000
+  val IMG_HEIGHT: Int = 400
+
+  val ROLLINGS_WEEKS: Int = 50
+
+  val FILE_ROLLINGS_DAYS: File = Paths.get(Graphs.DIR_GRAPHS.toString, s"last_${CovidStats.ROLLING_DAYS}_days.png").toFile
+  val FILE_ROLLINGS_WEEKS: File = Paths.get(Graphs.DIR_GRAPHS.toString, s"last_${Graphs.ROLLINGS_WEEKS}_weeks.png").toFile
 }
 
 /**
@@ -26,7 +34,7 @@ class Graphs extends Actor {
   override def receive: Receive = {
     case e: CreateMonthGraph => createMonthGraph(e.data)
     case e: CreateRollingGraph => createRollingGraph(e.data)
-    case e: CreateWeeklyGraph => createWeeklyGraph(e.data)
+    case e: CreateWeeklyGraph => createWeeklyGraphs(e.data)
     case e: RequestMonthGraph => requestMonthGraph(e)
     case e: RequestRollingGraph => requestRollingGraph(e)
     case e: RequestWeekGraph => requestWeekGraph(e)
@@ -38,11 +46,8 @@ class Graphs extends Actor {
    *
    * @param data Covid data.
    */
-  def createRollingGraph(data: Seq[DayRecord]): Unit = {
+  private def createRollingGraph(data: Seq[DayRecord]): Unit = {
     Graphs.DIR_GRAPHS.toFile.mkdirs()
-
-    val imgFile = Paths.get(Graphs.DIR_GRAPHS.toString, "rolling.png").toFile
-    imgFile.delete()
 
     val dataset = new DefaultCategoryDataset
     data
@@ -59,10 +64,11 @@ class Graphs extends Actor {
     barChart.getCategoryPlot.setRenderer(new FirstDateBarRenderer(data))
     barChart.removeLegend()
 
-    ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
+    Graphs.FILE_ROLLINGS_DAYS.delete()
+    ChartUtils.saveChartAsPNG(Graphs.FILE_ROLLINGS_DAYS, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
   }
 
-  def createMonthGraph(data: Seq[DayRecord]): Unit = {
+  private def createMonthGraph(data: Seq[DayRecord]): Unit = {
     Graphs.DIR_MONTHS.toFile.mkdirs()
 
     val firstDate = data.head.date
@@ -89,22 +95,31 @@ class Graphs extends Actor {
       barChart.removeLegend()
 
       imgFile.delete()
-      ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
+      ChartUtils.saveChartAsPNG(imgFile, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
     }
   }
 
-  def createWeeklyGraph(data: Seq[WeekRecord]): Unit = {
+  private def createWeeklyGraphs(data: Seq[WeekRecord]): Unit = {
     Graphs.DIR_WEEKS.toFile.mkdirs()
 
-    val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile
+    data
+      .map(_.year)
+      .distinct
+      .foreach(year => createWeeklyWeekGraph(data.filter(_.year == year)))
+
+    createWeeklyRollingGraph(data)
+  }
+
+  private def createWeeklyWeekGraph(data: Seq[WeekRecord]): Unit = {
+    val year = data.head.year
 
     val dataset = new DefaultCategoryDataset
     data
-      .sortBy(_.weekNumber)
-      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekNumber))
+      .sortBy(_.weekOfYear)
+      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
 
     val barChart = ChartFactory.createBarChart(
-      s"Cases 2020 per week",
+      s"Cases $year per week",
       "Week",
       "Cases",
       dataset
@@ -112,18 +127,39 @@ class Graphs extends Actor {
     barChart.removeLegend()
     barChart.getCategoryPlot.setDomainAxis(new FifthWeekAxis)
 
+    val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, s"$year.png").toFile
     imgFile.delete()
-    ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
+    ChartUtils.saveChartAsPNG(imgFile, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
   }
 
-  def camelCase(str: String): String = str.take(1).toUpperCase() + str.drop(1).toLowerCase()
+  private def createWeeklyRollingGraph(data: Seq[WeekRecord]): Unit = {
+    val dataset = new DefaultCategoryDataset
+    data
+      .sortBy(w => (w.year, w.weekOfYear))
+      .takeRight(Graphs.ROLLINGS_WEEKS)
+      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
 
-  def isCurrentMonth(date: LocalDate): Boolean = {
+    val barChart = ChartFactory.createBarChart(
+      s"Cases last ${Graphs.ROLLINGS_WEEKS} weeks",
+      "Week",
+      "Cases",
+      dataset
+    )
+    barChart.removeLegend()
+    barChart.getCategoryPlot.setDomainAxis(new FifthWeekAxis)
+
+    Graphs.FILE_ROLLINGS_WEEKS.delete()
+    ChartUtils.saveChartAsPNG(Graphs.FILE_ROLLINGS_WEEKS, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
+  }
+
+  private def camelCase(str: String): String = str.take(1).toUpperCase() + str.drop(1).toLowerCase()
+
+  private def isCurrentMonth(date: LocalDate): Boolean = {
     val now = LocalDate.now()
     date.getMonthValue == now.getMonthValue && date.getYear == now.getYear
   }
 
-  def requestMonthGraph(request: RequestMonthGraph): Unit = {
+  private def requestMonthGraph(request: RequestMonthGraph): Unit = {
     val curYear = LocalDate.now().getYear
     val curMonth = LocalDate.now().getMonthValue
 
@@ -146,15 +182,19 @@ class Graphs extends Actor {
     }
   }
 
-  def requestRollingGraph(request: RequestRollingGraph): Unit = {
-    requestImage(request.destination, Paths.get(Graphs.DIR_GRAPHS.toString, "rolling.png").toFile)
+  private def requestRollingGraph(request: RequestRollingGraph): Unit = {
+    requestImage(request.destination, Graphs.FILE_ROLLINGS_DAYS)
   }
 
-  def requestWeekGraph(request: RequestWeekGraph): Unit = {
-    requestImage(request.destination, Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile)
+  private def requestWeekGraph(request: RequestWeekGraph): Unit = {
+    if (request.year.isDefined)
+      requestImage(request.destination, Paths.get(Graphs.DIR_WEEKS.toString, s"${request.year.get}.png").toFile)
+    else
+      requestImage(request.destination, Graphs.FILE_ROLLINGS_WEEKS)
   }
 
-  def requestImage(destination: Long, file: File): Unit = {
+  private def requestImage(destination: Long, file: File): Unit = {
+    println(s"Request: ${file.toString}")
     if (file.exists())
       CovidBot.ACTOR_TELEGRAM ! TelegramImage(destination, file)
     else
