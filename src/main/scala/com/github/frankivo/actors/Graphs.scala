@@ -103,6 +103,8 @@ class Graphs extends Actor {
       .map(_.year)
       .distinct
       .foreach(year => createWeeklyWeekGraph(data.filter(_.year == year)))
+
+    createWeeklyRollingGraph(data)
   }
 
   private def createWeeklyWeekGraph(data: Seq[WeekRecord]): Unit = {
@@ -117,6 +119,28 @@ class Graphs extends Actor {
 
     val barChart = ChartFactory.createBarChart(
       s"Cases $year per week",
+      "Week",
+      "Cases",
+      dataset
+    )
+    barChart.removeLegend()
+    barChart.getCategoryPlot.setDomainAxis(new FifthWeekAxis)
+
+    imgFile.delete()
+    ChartUtils.saveChartAsPNG(imgFile, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
+  }
+
+  private def createWeeklyRollingGraph(data: Seq[WeekRecord]): Unit = {
+    val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, "rolling.png").toFile
+
+    val dataset = new DefaultCategoryDataset
+    data
+      .sortBy(w => (w.year, w.weekOfYear))
+      .takeRight(50)
+      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
+
+    val barChart = ChartFactory.createBarChart(
+      s"Cases per week",
       "Week",
       "Cases",
       dataset
