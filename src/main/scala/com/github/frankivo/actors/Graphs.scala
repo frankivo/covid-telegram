@@ -16,6 +16,9 @@ object Graphs {
   val DIR_GRAPHS: Path = Paths.get(CovidBot.DIR_BASE.toString, "graphs")
   val DIR_MONTHS: Path = Paths.get(DIR_GRAPHS.toString, "month")
   val DIR_WEEKS: Path = Paths.get(DIR_GRAPHS.toString, "week")
+
+  val IMG_WIDTH : Int = 1000
+  val IMG_HEIGHT: Int = 400
 }
 
 /**
@@ -59,7 +62,7 @@ class Graphs extends Actor {
     barChart.getCategoryPlot.setRenderer(new FirstDateBarRenderer(data))
     barChart.removeLegend()
 
-    ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
+    ChartUtils.saveChartAsPNG(imgFile, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
   }
 
   private def createMonthGraph(data: Seq[DayRecord]): Unit = {
@@ -89,7 +92,7 @@ class Graphs extends Actor {
       barChart.removeLegend()
 
       imgFile.delete()
-      ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
+      ChartUtils.saveChartAsPNG(imgFile, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
     }
   }
 
@@ -113,7 +116,7 @@ class Graphs extends Actor {
     barChart.getCategoryPlot.setDomainAxis(new FifthWeekAxis)
 
     imgFile.delete()
-    ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
+    ChartUtils.saveChartAsPNG(imgFile, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
   }
 
   private def camelCase(str: String): String = str.take(1).toUpperCase() + str.drop(1).toLowerCase()
