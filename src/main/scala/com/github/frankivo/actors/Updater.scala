@@ -1,16 +1,17 @@
 package com.github.frankivo.actors
 
-import akka.actor.Actor
-import com.github.frankivo.messages.{RefreshData, TelegramText, UpdateAll}
-import com.github.frankivo.model.DayRecord
-import com.github.frankivo.{CovidBot, FileReader}
-import scalaj.http.Http
-
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDate}
+
+import akka.actor.Actor
+import com.github.frankivo.messages.{RefreshData, RequestSource, TelegramText, UpdateAll}
+import com.github.frankivo.model.DayRecord
+import com.github.frankivo.{CovidBot, FileReader}
+import scalaj.http.Http
+
 import scala.util.Try
 
 object Updater {
@@ -39,6 +40,21 @@ object Updater {
    * @return Formatted String.
    */
   def formatDate(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
+
+  /**
+   * Git repo with data.
+   */
+  val URL_SOURCE: String = "https://github.com/J535D165/CoronaWatchNL/tree/master/data-geo"
+
+  /**
+   * String format with url to download national data.
+   */
+  val URL_NATIONAL: String = "https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-national/RIVM_NL_national_%s.csv"
+
+  /**
+   * String format with url to download municipal data.
+   */
+  val URL_MUNICIPAL: String = "https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-municipal/RIVM_NL_municipal_%s.csv"
 }
 
 /**
@@ -56,7 +72,8 @@ class Updater extends Actor {
   private def onMessage(hasRun: Boolean): Receive = {
     case u: UpdateAll =>
       val msg = refresh(hasRun)
-      u.destination.foreach(id => CovidBot.ACTOR_TELEGRAM ! TelegramText(id, msg))
+      u.destination.foreach(dest => CovidBot.ACTOR_TELEGRAM ! TelegramText(dest, msg))
+    case r: RequestSource => CovidBot.ACTOR_TELEGRAM ! TelegramText(r.destination, s"Source: ${Updater.URL_SOURCE}")
   }
 
   /**
@@ -99,15 +116,10 @@ class Updater extends Actor {
       })
   }
 
-  private def downloadNational(date: String): Unit = {
-    val url = s"https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-national/RIVM_NL_national_$date.csv"
-    download(url, DIR_DATA_NATIONAL)
-  }
+  private def downloadNational(date: String): Unit = download(Updater.URL_NATIONAL.format(date), DIR_DATA_NATIONAL)
 
-  private def downloadMunicipal(date: String): Unit = {
-    val url = s"https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-municipal/RIVM_NL_municipal_$date.csv"
-    download(url, DIR_DATA_MUNICIPAL)
-  }
+  private def downloadMunicipal(date: String): Unit = download(Updater.URL_MUNICIPAL.format(date), DIR_DATA_MUNICIPAL)
+
 
   /**
    * Downloads a file into a directory.
