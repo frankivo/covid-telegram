@@ -17,7 +17,7 @@ object Graphs {
   val DIR_MONTHS: Path = Paths.get(DIR_GRAPHS.toString, "month")
   val DIR_WEEKS: Path = Paths.get(DIR_GRAPHS.toString, "week")
 
-  val IMG_WIDTH : Int = 1000
+  val IMG_WIDTH: Int = 1000
   val IMG_HEIGHT: Int = 400
 }
 
@@ -29,7 +29,7 @@ class Graphs extends Actor {
   override def receive: Receive = {
     case e: CreateMonthGraph => createMonthGraph(e.data)
     case e: CreateRollingGraph => createRollingGraph(e.data)
-    case e: CreateWeeklyGraph => createWeeklyGraph(e.data)
+    case e: CreateWeeklyGraph => createWeeklyGraphs(e.data)
     case e: RequestMonthGraph => requestMonthGraph(e)
     case e: RequestRollingGraph => requestRollingGraph(e)
     case e: RequestWeekGraph => requestWeekGraph(e)
@@ -96,27 +96,33 @@ class Graphs extends Actor {
     }
   }
 
-  private def createWeeklyGraph(data: Seq[WeekRecord]): Unit = {
+  private def createWeeklyGraphs(data: Seq[WeekRecord]): Unit = {
     Graphs.DIR_WEEKS.toFile.mkdirs()
 
-    val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile
-
-    val dataset = new DefaultCategoryDataset
     data
-      .sortBy(_.weekOfYear)
-      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
+      .map(_.year)
+      .distinct
+      .foreach(year => {
+        val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, s"$year.png").toFile
 
-    val barChart = ChartFactory.createBarChart(
-      s"Cases 2020 per week",
-      "Week",
-      "Cases",
-      dataset
-    )
-    barChart.removeLegend()
-    barChart.getCategoryPlot.setDomainAxis(new FifthWeekAxis)
+        val dataset = new DefaultCategoryDataset
+        data
+          .filter(_.year == year)
+          .sortBy(_.weekOfYear)
+          .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
 
-    imgFile.delete()
-    ChartUtils.saveChartAsPNG(imgFile, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
+        val barChart = ChartFactory.createBarChart(
+          s"Cases $year per week",
+          "Week",
+          "Cases",
+          dataset
+        )
+        barChart.removeLegend()
+        barChart.getCategoryPlot.setDomainAxis(new FifthWeekAxis)
+
+        imgFile.delete()
+        ChartUtils.saveChartAsPNG(imgFile, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
+      })
   }
 
   private def camelCase(str: String): String = str.take(1).toUpperCase() + str.drop(1).toLowerCase()
