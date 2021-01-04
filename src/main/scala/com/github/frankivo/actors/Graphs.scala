@@ -38,7 +38,7 @@ class Graphs extends Actor {
    *
    * @param data Covid data.
    */
-  def createRollingGraph(data: Seq[DayRecord]): Unit = {
+  private def createRollingGraph(data: Seq[DayRecord]): Unit = {
     Graphs.DIR_GRAPHS.toFile.mkdirs()
 
     val imgFile = Paths.get(Graphs.DIR_GRAPHS.toString, "rolling.png").toFile
@@ -62,7 +62,7 @@ class Graphs extends Actor {
     ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
   }
 
-  def createMonthGraph(data: Seq[DayRecord]): Unit = {
+  private def createMonthGraph(data: Seq[DayRecord]): Unit = {
     Graphs.DIR_MONTHS.toFile.mkdirs()
 
     val firstDate = data.head.date
@@ -93,7 +93,7 @@ class Graphs extends Actor {
     }
   }
 
-  def createWeeklyGraph(data: Seq[WeekRecord]): Unit = {
+  private def createWeeklyGraph(data: Seq[WeekRecord]): Unit = {
     Graphs.DIR_WEEKS.toFile.mkdirs()
 
     val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile
@@ -116,14 +116,14 @@ class Graphs extends Actor {
     ChartUtils.saveChartAsPNG(imgFile, barChart, 1000, 400)
   }
 
-  def camelCase(str: String): String = str.take(1).toUpperCase() + str.drop(1).toLowerCase()
+  private def camelCase(str: String): String = str.take(1).toUpperCase() + str.drop(1).toLowerCase()
 
-  def isCurrentMonth(date: LocalDate): Boolean = {
+  private def isCurrentMonth(date: LocalDate): Boolean = {
     val now = LocalDate.now()
     date.getMonthValue == now.getMonthValue && date.getYear == now.getYear
   }
 
-  def requestMonthGraph(request: RequestMonthGraph): Unit = {
+  private def requestMonthGraph(request: RequestMonthGraph): Unit = {
     val curYear = LocalDate.now().getYear
     val curMonth = LocalDate.now().getMonthValue
 
@@ -146,15 +146,15 @@ class Graphs extends Actor {
     }
   }
 
-  def requestRollingGraph(request: RequestRollingGraph): Unit = {
+  private def requestRollingGraph(request: RequestRollingGraph): Unit = {
     requestImage(request.destination, Paths.get(Graphs.DIR_GRAPHS.toString, "rolling.png").toFile)
   }
 
-  def requestWeekGraph(request: RequestWeekGraph): Unit = {
+  private def requestWeekGraph(request: RequestWeekGraph): Unit = {
     requestImage(request.destination, Paths.get(Graphs.DIR_WEEKS.toString, "2020.png").toFile)
   }
 
-  def requestImage(destination: Long, file: File): Unit = {
+  private def requestImage(destination: Long, file: File): Unit = {
     if (file.exists())
       CovidBot.ACTOR_TELEGRAM ! TelegramImage(destination, file)
     else
