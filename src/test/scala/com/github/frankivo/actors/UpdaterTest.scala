@@ -3,7 +3,6 @@ package com.github.frankivo.actors
 import utest.{ArrowAssert, TestSuite, Tests, test}
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 object UpdaterTest extends TestSuite {
 

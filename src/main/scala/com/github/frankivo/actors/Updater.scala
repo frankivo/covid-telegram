@@ -1,17 +1,16 @@
 package com.github.frankivo.actors
 
-import java.io.FileOutputStream
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Path, Paths}
-import java.time.format.DateTimeFormatter
-import java.time.{Duration, LocalDate}
-
 import akka.actor.Actor
 import com.github.frankivo.messages.{RefreshData, RequestSource, TelegramText, UpdateAll}
 import com.github.frankivo.model.DayRecord
 import com.github.frankivo.{CovidBot, FileReader}
 import scalaj.http.Http
 
+import java.io.FileOutputStream
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Path, Paths}
+import java.time.format.DateTimeFormatter
+import java.time.{Duration, LocalDate}
 import scala.util.Try
 
 object Updater {

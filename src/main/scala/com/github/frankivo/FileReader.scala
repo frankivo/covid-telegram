@@ -1,11 +1,10 @@
 package com.github.frankivo
 
-import java.io.File
-import java.time.LocalDate
-
 import com.github.frankivo.model.{DayRecord, MunicipalRecord}
 import com.github.tototoshi.csv.CSVReader
 
+import java.io.File
+import java.time.LocalDate
 import scala.io.BufferedSource
 
 /**

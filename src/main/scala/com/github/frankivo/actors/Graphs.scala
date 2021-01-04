@@ -1,9 +1,5 @@
 package com.github.frankivo.actors
 
-import java.io.File
-import java.nio.file.{Path, Paths}
-import java.time.LocalDate
-
 import akka.actor.Actor
 import com.github.frankivo.CovidBot
 import com.github.frankivo.JFreeChart.{FifthWeekAxis, FirstDateAxis, FirstDateBarRenderer}
@@ -11,6 +7,10 @@ import com.github.frankivo.messages._
 import com.github.frankivo.model.{DayRecord, WeekRecord}
 import org.jfree.chart.{ChartFactory, ChartUtils}
 import org.jfree.data.category.DefaultCategoryDataset
+
+import java.io.File
+import java.nio.file.{Path, Paths}
+import java.time.LocalDate
 
 object Graphs {
   val DIR_GRAPHS: Path = Paths.get(CovidBot.DIR_BASE.toString, "graphs")
