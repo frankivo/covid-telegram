@@ -19,6 +19,8 @@ object Graphs {
 
   val IMG_WIDTH: Int = 1000
   val IMG_HEIGHT: Int = 400
+
+  val ROLLINGS_WEEKS: Int = 50
 }
 
 /**
@@ -131,16 +133,16 @@ class Graphs extends Actor {
   }
 
   private def createWeeklyRollingGraph(data: Seq[WeekRecord]): Unit = {
-    val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, "rolling.png").toFile
+    val imgFile = Paths.get(Graphs.DIR_GRAPHS.toString, s"last_${Graphs.ROLLINGS_WEEKS}_weeks.png").toFile
 
     val dataset = new DefaultCategoryDataset
     data
       .sortBy(w => (w.year, w.weekOfYear))
-      .takeRight(50)
+      .takeRight(Graphs.ROLLINGS_WEEKS)
       .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
 
     val barChart = ChartFactory.createBarChart(
-      "Cases last 50 weeks",
+      s"Cases last ${Graphs.ROLLINGS_WEEKS} weeks",
       "Week",
       "Cases",
       dataset
