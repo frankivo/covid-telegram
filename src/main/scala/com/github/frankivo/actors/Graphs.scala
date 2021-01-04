@@ -48,7 +48,6 @@ class Graphs extends Actor {
    */
   private def createRollingGraph(data: Seq[DayRecord]): Unit = {
     Graphs.DIR_GRAPHS.toFile.mkdirs()
-    Graphs.FILE_ROLLINGS_DAYS.delete()
 
     val dataset = new DefaultCategoryDataset
     data
@@ -65,6 +64,7 @@ class Graphs extends Actor {
     barChart.getCategoryPlot.setRenderer(new FirstDateBarRenderer(data))
     barChart.removeLegend()
 
+    Graphs.FILE_ROLLINGS_DAYS.delete()
     ChartUtils.saveChartAsPNG(Graphs.FILE_ROLLINGS_DAYS, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
   }
 
