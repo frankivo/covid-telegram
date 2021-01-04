@@ -74,6 +74,7 @@ class Telegram extends Actor {
           case "/hi" => send(TelegramText(c.destination, "Hi!"))
           case "/month" => CovidBot.ACTOR_GRAPHS ! RequestMonthGraph(c.destination, c.parameter)
           case "/refresh" => CovidBot.ACTOR_UPDATER ! UpdateAll(Some(c.destination))
+          case "/source" => CovidBot.ACTOR_UPDATER ! RequestSource(c.destination)
           case "/weekly" => CovidBot.ACTOR_GRAPHS ! RequestWeekGraph(c.destination)
 
           case e => send(TelegramText(c.destination, s"Unknown command: $e"))
