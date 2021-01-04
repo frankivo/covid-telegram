@@ -140,7 +140,7 @@ class Graphs extends Actor {
       .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
 
     val barChart = ChartFactory.createBarChart(
-      s"Cases per week",
+      "Cases last 50 weeks",
       "Week",
       "Cases",
       dataset
