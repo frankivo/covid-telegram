@@ -102,27 +102,30 @@ class Graphs extends Actor {
     data
       .map(_.year)
       .distinct
-      .foreach(year => {
-        val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, s"$year.png").toFile
+      .foreach(year => createWeeklyWeekGraph(data.filter(_.year == year)))
+  }
 
-        val dataset = new DefaultCategoryDataset
-        data
-          .filter(_.year == year)
-          .sortBy(_.weekOfYear)
-          .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
+  private def createWeeklyWeekGraph(data: Seq[WeekRecord]): Unit = {
+    val year = data.head.year
 
-        val barChart = ChartFactory.createBarChart(
-          s"Cases $year per week",
-          "Week",
-          "Cases",
-          dataset
-        )
-        barChart.removeLegend()
-        barChart.getCategoryPlot.setDomainAxis(new FifthWeekAxis)
+    val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, s"$year.png").toFile
 
-        imgFile.delete()
-        ChartUtils.saveChartAsPNG(imgFile, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
-      })
+    val dataset = new DefaultCategoryDataset
+    data
+      .sortBy(_.weekOfYear)
+      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
+
+    val barChart = ChartFactory.createBarChart(
+      s"Cases $year per week",
+      "Week",
+      "Cases",
+      dataset
+    )
+    barChart.removeLegend()
+    barChart.getCategoryPlot.setDomainAxis(new FifthWeekAxis)
+
+    imgFile.delete()
+    ChartUtils.saveChartAsPNG(imgFile, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
   }
 
   private def camelCase(str: String): String = str.take(1).toUpperCase() + str.drop(1).toLowerCase()
