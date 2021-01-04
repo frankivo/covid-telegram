@@ -21,6 +21,9 @@ object Graphs {
   val IMG_HEIGHT: Int = 400
 
   val ROLLINGS_WEEKS: Int = 50
+
+  val FILE_ROLLINGS_DAYS: String = s"last_${CovidStats.ROLLING_DAYS}_days.png"
+  val FILE_ROLLINGS_WEEKS: String = s"last_${Graphs.ROLLINGS_WEEKS}_weeks.png"
 }
 
 /**
@@ -46,7 +49,7 @@ class Graphs extends Actor {
   private def createRollingGraph(data: Seq[DayRecord]): Unit = {
     Graphs.DIR_GRAPHS.toFile.mkdirs()
 
-    val imgFile = Paths.get(Graphs.DIR_GRAPHS.toString, s"last_${CovidStats.ROLLING_DAYS}_days.png").toFile
+    val imgFile = Paths.get(Graphs.DIR_GRAPHS.toString, Graphs.FILE_ROLLINGS_DAYS).toFile
     imgFile.delete()
 
     val dataset = new DefaultCategoryDataset
@@ -133,7 +136,7 @@ class Graphs extends Actor {
   }
 
   private def createWeeklyRollingGraph(data: Seq[WeekRecord]): Unit = {
-    val imgFile = Paths.get(Graphs.DIR_GRAPHS.toString, s"last_${Graphs.ROLLINGS_WEEKS}_weeks.png").toFile
+    val imgFile = Paths.get(Graphs.DIR_GRAPHS.toString, Graphs.FILE_ROLLINGS_WEEKS).toFile
 
     val dataset = new DefaultCategoryDataset
     data
@@ -185,7 +188,7 @@ class Graphs extends Actor {
   }
 
   private def requestRollingGraph(request: RequestRollingGraph): Unit = {
-    requestImage(request.destination, Paths.get(Graphs.DIR_GRAPHS.toString, "rolling.png").toFile)
+    requestImage(request.destination, Paths.get(Graphs.DIR_GRAPHS.toString, Graphs.FILE_ROLLINGS_DAYS).toFile)
   }
 
   private def requestWeekGraph(request: RequestWeekGraph): Unit = {
