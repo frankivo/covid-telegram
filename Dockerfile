@@ -1,4 +1,4 @@
-FROM oosterhuisf/sbt:1.4.9 as compiler
+FROM oosterhuisf/sbt:1.5.0 as compiler
 WORKDIR /root
 COPY project/build.properties project/plugins.sbt ./project/
 COPY build.sbt .

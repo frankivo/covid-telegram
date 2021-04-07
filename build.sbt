@@ -17,5 +17,5 @@ scalacOptions := Seq("-unchecked", "-deprecation")
 
 assemblyMergeStrategy in assembly := {
   case PathList("module-info.class", _*) => MergeStrategy.discard
-  case x => (assemblyMergeStrategy in assembly).value(x)
+  case x => (assembly / assemblyMergeStrategy).value(x)
 }
