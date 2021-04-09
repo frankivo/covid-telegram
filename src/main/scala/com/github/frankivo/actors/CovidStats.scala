@@ -73,7 +73,7 @@ class CovidStats extends Actor {
   }
 
   /**
-   * Creates a graph with weekly average counts.
+   * Creates a graph with weekly counts summed.
    *
    * @param stats All covid daily data.
    */
@@ -86,6 +86,12 @@ class CovidStats extends Actor {
     CovidBot.ACTOR_GRAPHS ! CreateWeeklyGraph(weekData)
   }
 
+  /**
+   * Calculates the weeknumber for any LocalDate.
+   *
+   * @param date Input date to calculate weeknumber for.
+   * @return Weeknumber.
+   */
   private def weekNumber(date: LocalDate): Int = date.get(WeekFields.of(Locale.GERMANY).weekOfYear())
 
   private def getDayCount(stats: DayRecords, date: Option[String]): String = {
