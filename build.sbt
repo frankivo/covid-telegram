@@ -16,6 +16,7 @@ testFrameworks += new TestFramework("utest.runner.Framework")
 scalacOptions := Seq("-unchecked", "-deprecation")
 
 assembly / assemblyMergeStrategy := {
-  case PathList("module-info.class", _*) => MergeStrategy.discard
+  case "META-INF/versions/9/module-info.class" => MergeStrategy.concat
+  case "META-INF/io.netty.versions.properties" => MergeStrategy.concat
   case x => (assembly / assemblyMergeStrategy).value(x)
 }
