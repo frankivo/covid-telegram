@@ -81,7 +81,7 @@ class CovidStats extends Actor {
     val weekData = stats
       .data
       .groupBy(d => (d.date.getYear, weekNumber(d.date)))
-      .map(x => WeekRecord(year = x._1._1, weekOfYear = x._1._2, count = x._2.map(c => c.count).sum / x._2.length))
+      .map(x => WeekRecord(year = x._1._1, weekOfYear = x._1._2, count = x._2.map(c => c.count).sum))
       .toSeq
     CovidBot.ACTOR_GRAPHS ! CreateWeeklyGraph(weekData)
   }
