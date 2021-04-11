@@ -36,18 +36,23 @@ class Telegram extends Actor {
   val bot = new TelegramBot(Telegram.apiKey)
   send(TelegramText(Telegram.ownerId, "Hello World"))
 
+  listenForUpdates()
+
   override def receive: Receive = {
     case txt: TelegramText => send(txt)
     case img: TelegramImage => send(img)
   }
 
-  if (Telegram.registerUpdates) {
+  private def listenForUpdates(): Unit = {
+    if (!Telegram.registerUpdates) return
+
     bot.setUpdatesListener(updates => {
       try handleUpdates(updates.asScala.toSeq)
       catch {
         case e: Exception =>
           send(TelegramText(Telegram.ownerId, "Error occurred!"))
           send(TelegramText(Telegram.ownerId, e.toString))
+          System.exit(1) // docker-compose should revive the service.
       }
       UpdatesListener.CONFIRMED_UPDATES_ALL
     })
