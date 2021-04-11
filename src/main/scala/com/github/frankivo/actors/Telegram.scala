@@ -47,7 +47,7 @@ class Telegram extends Actor {
       catch {
         case e: Exception =>
           send(TelegramText(Telegram.ownerId, "Error occurred!"))
-          send(TelegramText(Telegram.ownerId, e.getMessage))
+          send(TelegramText(Telegram.ownerId, e.toString))
       }
       UpdatesListener.CONFIRMED_UPDATES_ALL
     })
