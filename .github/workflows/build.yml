@@ -1,4 +1,4 @@
-name: Test Runner
+name: Build docker image
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
       with:
         java-version: 1.8
     - name: Set build version
-      run: sed -i -e 's/unknown/${GITHUB_SHA}/g' ./src/main/scala/com/github/frankivo/Version.scala
+      run: sed -i -e "s/unknown/${GITHUB_SHA}/g" ./src/main/scala/com/github/frankivo/Version.scala
     - name: Test version
       run: cat ./src/main/scala/com/github/frankivo/Version.scala
     - name: Run tests
