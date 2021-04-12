@@ -34,7 +34,8 @@ class Telegram extends Actor {
   case class Command(destination: Long, cmd: String, parameter: Option[String])
 
   val bot = new TelegramBot(Telegram.apiKey)
-  send(TelegramText(Telegram.ownerId, "Hello World"))
+  send(TelegramText(Telegram.ownerId, s"Hello World. I'm running version: ${Version.VERSION_STRING}"))
+  println(s"I'm running version: ${Version.VERSION_STRING}")
 
   listenForUpdates()
 
