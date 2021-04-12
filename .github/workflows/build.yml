@@ -16,7 +16,7 @@ jobs:
       run: sed -i -e "s/unknown/${GITHUB_SHA}/g" ./src/main/scala/com/github/frankivo/Version.scala
 
     - name: Docker Login
-      uses: docker/login-action@v1.6.0
+      uses: docker/login-action@v1
       with:
         username: oosterhuisf
         password: ${{ secrets.DOCKERHUB }}
