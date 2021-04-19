@@ -43,6 +43,11 @@ class Updater extends Actor {
     case r: RequestSource => CovidBot.ACTOR_TELEGRAM ! TelegramText(r.destination, s"Source: ${Updater.URL_SOURCE}")
   }
 
+  /**
+   * Refresh daily data.
+   * @param hasRun is false for first call.
+   * @return String Message for Telegram.
+   */
   private def refresh(hasRun: Boolean): String = {
     val reportDateBefore = reportDate()
 
@@ -61,6 +66,9 @@ class Updater extends Actor {
     s"Done: Report date: $reportDateAfter"
   }
 
+  /**
+   * Download file from the interwebs.
+   */
   private def download(): Unit = {
     DIR_DATA.toFile.mkdirs()
 
@@ -75,6 +83,11 @@ class Updater extends Actor {
     }
   }
 
+  /**
+   * Get report date from the csv-file.
+   * This is the second column of the second row (and all the rows below).
+   * @return The report date from the csv file OR LocalDate.MIN if the file does not exist.
+   */
   private def reportDate(): LocalDate = {
     Using(Source.fromFile(FILE_DATA.toFile)) {
       source =>
@@ -89,6 +102,12 @@ class Updater extends Actor {
     }.getOrElse(LocalDate.MIN)
   }
 
+  /**
+   * Read all the data from the CSV file.
+   * This data is daily per region.
+   * This function will summarize this per day.
+   * @return A list of DayRecord.
+   */
   private def readData(): Seq[DayRecord] = {
     Using(Source.fromFile(FILE_DATA.toFile)) {
       source =>
