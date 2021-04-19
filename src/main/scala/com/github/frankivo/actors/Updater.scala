@@ -49,6 +49,8 @@ class Updater extends Actor {
    * @return String Message for Telegram.
    */
   private def refresh(hasRun: Boolean): String = {
+    println("Refresh data")
+
     val reportDateBefore = reportDate()
 
     download()
