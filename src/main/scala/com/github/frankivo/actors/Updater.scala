@@ -25,16 +25,6 @@ object Updater {
   val URL_NATIONAL: String = "https://data.rivm.nl/covid-19/COVID-19_uitgevoerde_testen.csv"
 
   /**
-   * Directory where data is stored.
-   */
-  val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
-
-  /**
-   * Location where data is stored.
-   */
-  val FILE_DATA: Path = Paths.get(DIR_DATA.toString, "covid19.csv")
-
-  /**
    * Get report date from the csv-file.
    * This is the second column of the second row (and all the rows below).
    *
@@ -79,6 +69,16 @@ object Updater {
  */
 class Updater extends Actor {
 
+  /**
+   * Directory where data is stored.
+   */
+  val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
+
+  /**
+   * Location where data is stored.
+   */
+  val FILE_DATA: Path = Paths.get(DIR_DATA.toString, "covid19.csv")
+
   override def receive: Receive = onMessage(false)
 
   private def onMessage(hasRun: Boolean): Receive = {
@@ -118,26 +118,26 @@ class Updater extends Actor {
    * Download file from the interwebs.
    */
   private def download(): Unit = {
-    Updater.DIR_DATA.toFile.mkdirs()
+    DIR_DATA.toFile.mkdirs()
 
-    if (Updater.FILE_DATA.toFile.exists)
-      Updater.FILE_DATA.toFile.delete
+    if (FILE_DATA.toFile.exists)
+      FILE_DATA.toFile.delete
 
     val result = Http(Updater.URL_NATIONAL).asString
     if (result.isSuccess) {
-      val out = new FileOutputStream(Updater.FILE_DATA.toFile)
+      val out = new FileOutputStream(FILE_DATA.toFile)
       out.write(result.body.getBytes(StandardCharsets.UTF_8))
       out.close()
     }
   }
 
   def reportDate(): LocalDate = {
-    Try(Updater.reportDate(Source.fromFile(Updater.FILE_DATA.toFile)))
+    Try(Updater.reportDate(Source.fromFile(FILE_DATA.toFile)))
       .getOrElse(LocalDate.MIN)
   }
 
   def readData(): Seq[DayRecord] = {
-    Try(Updater.readData(Source.fromFile(Updater.FILE_DATA.toFile)))
+    Try(Updater.readData(Source.fromFile(FILE_DATA.toFile)))
       .getOrElse(Seq())
   }
 }
