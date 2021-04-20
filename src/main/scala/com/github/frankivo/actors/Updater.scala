@@ -10,8 +10,8 @@ import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
 import java.time.LocalDate
-import scala.io.Source
-import scala.util.Using
+import scala.io.{BufferedSource, Source}
+import scala.util.{Try, Using}
 
 object Updater {
   /**
@@ -23,6 +23,35 @@ object Updater {
    * String format with url to download national data.
    */
   val URL_NATIONAL: String = "https://data.rivm.nl/covid-19/COVID-19_uitgevoerde_testen.csv"
+
+  /**
+   * Directory where data is stored.
+   */
+  val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
+
+  /**
+   * Location where data is stored.
+   */
+  val FILE_DATA: Path = Paths.get(DIR_DATA.toString, "covid19.csv")
+
+  /**
+   * Get report date from the csv-file.
+   * This is the second column of the second row (and all the rows below).
+   *
+   * @return The report date from the csv file OR LocalDate.MIN if the file does not exist.
+   */
+  def reportDate(source: BufferedSource = Source.fromFile(FILE_DATA.toFile)): LocalDate = {
+    Try {
+      val raw = source
+        .getLines().slice(1, 2)
+        .toSeq
+        .map(_.split(";"))
+        .map(_ (1))
+        .head
+        .substring(0, 10)
+      LocalDate.parse(raw)
+    }.getOrElse(LocalDate.MIN)
+  }
 }
 
 /**
@@ -30,9 +59,6 @@ object Updater {
  * This data contains daily national covid statistics.
  */
 class Updater extends Actor {
-
-  private val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
-  private val FILE_DATA: Path = Paths.get(DIR_DATA.toString, "covid19.csv")
 
   override def receive: Receive = onMessage(false)
 
@@ -45,17 +71,18 @@ class Updater extends Actor {
 
   /**
    * Refresh daily data.
+   *
    * @param hasRun is false for first call.
    * @return String Message for Telegram.
    */
   private def refresh(hasRun: Boolean): String = {
     println("Refresh data")
 
-    val reportDateBefore = reportDate()
+    val reportDateBefore = Updater.reportDate()
 
     download()
 
-    val reportDateAfter = reportDate()
+    val reportDateAfter = Updater.reportDate()
     val hasUpdates = reportDateAfter.isAfter(reportDateBefore)
 
     if (hasUpdates || !hasRun) {
@@ -72,46 +99,28 @@ class Updater extends Actor {
    * Download file from the interwebs.
    */
   private def download(): Unit = {
-    DIR_DATA.toFile.mkdirs()
+    Updater.DIR_DATA.toFile.mkdirs()
 
-    if (FILE_DATA.toFile.exists)
-      FILE_DATA.toFile.delete
+    if (Updater.FILE_DATA.toFile.exists)
+      Updater.FILE_DATA.toFile.delete
 
     val result = Http(Updater.URL_NATIONAL).asString
     if (result.isSuccess) {
-      val out = new FileOutputStream(FILE_DATA.toFile)
+      val out = new FileOutputStream(Updater.FILE_DATA.toFile)
       out.write(result.body.getBytes(StandardCharsets.UTF_8))
       out.close()
     }
   }
 
   /**
-   * Get report date from the csv-file.
-   * This is the second column of the second row (and all the rows below).
-   * @return The report date from the csv file OR LocalDate.MIN if the file does not exist.
-   */
-  private def reportDate(): LocalDate = {
-    Using(Source.fromFile(FILE_DATA.toFile)) {
-      source =>
-        val raw = source
-          .getLines().slice(1, 2)
-          .toSeq
-          .map(_.split(";"))
-          .map(_ (1))
-          .head
-          .substring(0, 10)
-        LocalDate.parse(raw)
-    }.getOrElse(LocalDate.MIN)
-  }
-
-  /**
    * Read all the data from the CSV file.
    * This data is daily per region.
    * This function will summarize this per day.
+   *
    * @return A list of DayRecord.
    */
   private def readData(): Seq[DayRecord] = {
-    Using(Source.fromFile(FILE_DATA.toFile)) {
+    Using(Source.fromFile(Updater.FILE_DATA.toFile)) {
       source =>
         source
           .getLines()
