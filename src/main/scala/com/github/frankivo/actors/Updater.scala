@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
 import java.time.LocalDate
 import scala.io.{BufferedSource, Source}
-import scala.util.{Try, Using}
+import scala.util.Try
 
 object Updater {
   /**
@@ -40,7 +40,7 @@ object Updater {
    *
    * @return The report date from the csv file OR LocalDate.MIN if the file does not exist.
    */
-  def reportDate(source: BufferedSource = Source.fromFile(FILE_DATA.toFile)): LocalDate = {
+  def reportDate(source: BufferedSource): LocalDate = {
     Try {
       val raw = source
         .getLines().slice(1, 2)
@@ -51,6 +51,25 @@ object Updater {
         .substring(0, 10)
       LocalDate.parse(raw)
     }.getOrElse(LocalDate.MIN)
+  }
+
+  /**
+   * Read all the data from the CSV file.
+   * This data is daily per region.
+   * This function will summarize this per day.
+   *
+   * @return A list of DayRecord.
+   */
+  def readData(source: BufferedSource): Seq[DayRecord] = {
+    source
+      .getLines()
+      .drop(1)
+      .map(_.split(";"))
+      .map(rec => DayRecord(LocalDate.parse(rec(2)), rec(6).toLong))
+      .toSeq
+      .groupBy(_.date)
+      .map(rec => DayRecord(rec._1, rec._2.map(_.count).sum))
+      .toSeq
   }
 }
 
@@ -78,11 +97,11 @@ class Updater extends Actor {
   private def refresh(hasRun: Boolean): String = {
     println("Refresh data")
 
-    val reportDateBefore = Updater.reportDate()
+    val reportDateBefore = reportDate()
 
     download()
 
-    val reportDateAfter = Updater.reportDate()
+    val reportDateAfter = reportDate()
     val hasUpdates = reportDateAfter.isAfter(reportDateBefore)
 
     if (hasUpdates || !hasRun) {
@@ -112,25 +131,13 @@ class Updater extends Actor {
     }
   }
 
-  /**
-   * Read all the data from the CSV file.
-   * This data is daily per region.
-   * This function will summarize this per day.
-   *
-   * @return A list of DayRecord.
-   */
-  private def readData(): Seq[DayRecord] = {
-    Using(Source.fromFile(Updater.FILE_DATA.toFile)) {
-      source =>
-        source
-          .getLines()
-          .drop(1)
-          .map(_.split(";"))
-          .map(rec => DayRecord(LocalDate.parse(rec(2)), rec(6).toLong))
-          .toSeq
-          .groupBy(_.date)
-          .map(rec => DayRecord(rec._1, rec._2.map(_.count).sum))
-          .toSeq
-    }.get
+  def reportDate(): LocalDate = {
+    Try(Updater.reportDate(Source.fromFile(Updater.FILE_DATA.toFile)))
+      .getOrElse(LocalDate.MIN)
+  }
+
+  def readData(): Seq[DayRecord] = {
+    Try(Updater.readData(Source.fromFile(Updater.FILE_DATA.toFile)))
+      .getOrElse(Seq())
   }
 }

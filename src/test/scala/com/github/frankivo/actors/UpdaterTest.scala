@@ -16,5 +16,13 @@ object UpdaterTest extends TestSuite {
       val file = Source.fromResource("")
       Updater.reportDate(file) ==> LocalDate.MIN
     }
+
+    test("should be able to read csv data") {
+      val file = Source.fromResource("UpdaterTest.csv")
+      val data = Updater.readData(file)
+
+      data.length ==> 7
+      data.filter(_.date.equals(LocalDate.parse("2021-06-04"))).head.count ==> 242
+    }
   }
 }
