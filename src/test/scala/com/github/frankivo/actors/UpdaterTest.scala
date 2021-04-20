@@ -3,26 +3,26 @@ package com.github.frankivo.actors
 import utest.{ArrowAssert, TestSuite, Tests, test}
 
 import java.time.LocalDate
+import scala.io.Source
 
 object UpdaterTest extends TestSuite {
-
   val tests: Tests = Tests {
-    test("week should return 8 days") {
-      Updater
-        .dateRange(LocalDate.now.minusWeeks(1))
-        .length ==> 8 // Week ago + today
+    test("should be able to get reportdate from file") {
+      val file = Source.fromResource("UpdaterTest.csv")
+      Updater.reportDate(file) ==> Some(LocalDate.parse("2021-04-19"))
     }
 
-    test("last date should be today") {
-      Updater
-        .dateRange()
-        .last ==> LocalDate.now()
+    test("should return None on read failure") {
+      val file = Source.fromResource("")
+      Updater.reportDate(file) ==> None
     }
 
-    test("formatted string should be correct date") {
-      val date = LocalDate.parse("2020-12-29")
-      Updater.formatDate(date) ==> "20201229"
+    test("should be able to read csv data") {
+      val file = Source.fromResource("UpdaterTest.csv")
+      val data = Updater.readData(file)
+
+      data.length ==> 7
+      data.filter(_.date.equals(LocalDate.parse("2020-06-04"))).head.count ==> 1
     }
   }
-
 }
