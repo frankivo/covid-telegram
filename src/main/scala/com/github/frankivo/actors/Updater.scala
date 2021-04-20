@@ -131,14 +131,13 @@ class Updater extends Actor {
     }
   }
 
-  private def reportDate(): LocalDate = {
-    Try(Updater.reportDate(Source.fromFile(FILE_DATA)))
-      .toOption
-      .flatten
+  def reportDate(): LocalDate = {
+    Updater
+      .reportDate(Source.fromFile(FILE_DATA))
       .getOrElse(LocalDate.MIN)
   }
 
-  private def readData(): Seq[DayRecord] = {
+  def readData(): Seq[DayRecord] = {
     Try(Updater.readData(Source.fromFile(FILE_DATA)))
       .getOrElse(Seq())
   }
