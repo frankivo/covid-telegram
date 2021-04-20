@@ -22,7 +22,7 @@ object UpdaterTest extends TestSuite {
       val data = Updater.readData(file)
 
       data.length ==> 7
-      data.filter(_.date.equals(LocalDate.parse("2021-06-04"))).head.count ==> 242
+      data.filter(_.date.equals(LocalDate.parse("2020-06-04"))).head.count ==> 1
     }
   }
 }
