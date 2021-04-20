@@ -6,7 +6,7 @@ import com.github.frankivo.messages.{RefreshData, RequestSource, TelegramText, U
 import com.github.frankivo.model.DayRecord
 import scalaj.http.Http
 
-import java.io.FileOutputStream
+import java.io.{File, FileOutputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
 import java.time.LocalDate
@@ -30,7 +30,7 @@ object Updater {
    *
    * @return The report date from the csv file OR LocalDate.MIN if the file does not exist.
    */
-  def reportDate(source: BufferedSource): LocalDate = {
+  def reportDate(source: BufferedSource): Option[LocalDate] = {
     Try {
       val raw = source
         .getLines().slice(1, 2)
@@ -40,7 +40,7 @@ object Updater {
         .head
         .substring(0, 10)
       LocalDate.parse(raw)
-    }.getOrElse(LocalDate.MIN)
+    }.toOption
   }
 
   /**
@@ -77,7 +77,7 @@ class Updater extends Actor {
   /**
    * Location where data is stored.
    */
-  val FILE_DATA: Path = Paths.get(DIR_DATA.toString, "covid19.csv")
+  val FILE_DATA: File = Paths.get(DIR_DATA.toString, "covid19.csv").toFile
 
   override def receive: Receive = onMessage(false)
 
@@ -120,24 +120,25 @@ class Updater extends Actor {
   private def download(): Unit = {
     DIR_DATA.toFile.mkdirs()
 
-    if (FILE_DATA.toFile.exists)
-      FILE_DATA.toFile.delete
+    if (FILE_DATA.exists)
+      FILE_DATA.delete
 
     val result = Http(Updater.URL_NATIONAL).asString
     if (result.isSuccess) {
-      val out = new FileOutputStream(FILE_DATA.toFile)
+      val out = new FileOutputStream(FILE_DATA)
       out.write(result.body.getBytes(StandardCharsets.UTF_8))
       out.close()
     }
   }
 
   def reportDate(): LocalDate = {
-    Try(Updater.reportDate(Source.fromFile(FILE_DATA.toFile)))
+    Updater
+      .reportDate(Source.fromFile(FILE_DATA))
       .getOrElse(LocalDate.MIN)
   }
 
   def readData(): Seq[DayRecord] = {
-    Try(Updater.readData(Source.fromFile(FILE_DATA.toFile)))
+    Try(Updater.readData(Source.fromFile(FILE_DATA)))
       .getOrElse(Seq())
   }
 }

@@ -9,12 +9,12 @@ object UpdaterTest extends TestSuite {
   val tests: Tests = Tests {
     test("should be able to get reportdate from file") {
       val file = Source.fromResource("UpdaterTest.csv")
-      Updater.reportDate(file) ==> LocalDate.parse("2021-04-19")
+      Updater.reportDate(file) ==> Some(LocalDate.parse("2021-04-19"))
     }
 
-    test("should return LocalDate.MIN on read failure") {
+    test("should return None on read failure") {
       val file = Source.fromResource("")
-      Updater.reportDate(file) ==> LocalDate.MIN
+      Updater.reportDate(file) ==> None
     }
 
     test("should be able to read csv data") {
