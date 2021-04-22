@@ -17,7 +17,7 @@ object Updater {
   /**
    * First cases of Covid in The Netherlands.
    */
-  val COVID_EPOCH: LocalDate = LocalDate.parse("2020-02-27")
+  val COVID_EPOCH: LocalDate = LocalDate.parse("2020-07-02")
 
   /**
    * Get a date range from start to today.
@@ -48,12 +48,7 @@ object Updater {
   /**
    * String format with url to download national data.
    */
-  val URL_NATIONAL: String = "https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-national/RIVM_NL_national_%s.csv"
-
-  /**
-   * String format with url to download municipal data.
-   */
-  val URL_MUNICIPAL: String = "https://raw.githubusercontent.com/J535D165/CoronaWatchNL/master/data-geo/data-municipal/RIVM_NL_municipal_%s.csv"
+  val URL_NATIONAL: String = "https://raw.githubusercontent.com/mzelst/covid-19/master/corrections/corrections_per_day/corrections-%s.csv"
 }
 
 /**
@@ -63,8 +58,6 @@ object Updater {
 class Updater extends Actor {
 
   private val DIR_DATA: Path = Paths.get(CovidBot.DIR_BASE.toString, "data")
-  private val DIR_DATA_NATIONAL: Path = Paths.get(DIR_DATA.toString, "national")
-  private val DIR_DATA_MUNICIPAL: Path = Paths.get(DIR_DATA.toString, "municipal")
 
   override def receive: Receive = onMessage(false)
 
@@ -82,10 +75,10 @@ class Updater extends Actor {
    * @return Result message.
    */
   private def refresh(hasRun: Boolean): String = {
-    val countBefore = fileCount(DIR_DATA_NATIONAL)
+    val countBefore = fileCount()
     downloadAll()
 
-    val countAfter = fileCount(DIR_DATA_NATIONAL)
+    val countAfter = fileCount()
     val hasUpdates = countAfter > countBefore
 
     if (hasUpdates || !hasRun) {
@@ -101,35 +94,27 @@ class Updater extends Actor {
   /**
    * Count the amount of files in a given directory.
    *
-   * @param directory The directory to inspect.
    * @return Count of files. 0 if failed.
    */
-  def fileCount(directory: Path): Long = Try(directory.toFile.listFiles().length).getOrElse(0).toLong
+  def fileCount(): Long = Try(DIR_DATA.toFile.listFiles().length).getOrElse(0).toLong
 
   private def downloadAll(): Unit = {
-    Updater.dateRange()
-      .map(Updater.formatDate)
-      .foreach(day => {
-        downloadNational(day)
-        downloadMunicipal(day)
-      })
+    Updater
+      .dateRange()
+      .foreach(download)
   }
-
-  private def downloadNational(date: String): Unit = download(Updater.URL_NATIONAL.format(date), DIR_DATA_NATIONAL)
-
-  private def downloadMunicipal(date: String): Unit = download(Updater.URL_MUNICIPAL.format(date), DIR_DATA_MUNICIPAL)
 
 
   /**
    * Downloads a file into a directory.
    *
-   * @param url       The file to download.
-   * @param targetDir The directory to store the file in.
+   * @param date The date to download statistics for.
    */
-  private def download(url: String, targetDir: Path): Unit = {
-    targetDir.toFile.mkdirs()
+  private def download(date: LocalDate): Unit = {
+    DIR_DATA.toFile.mkdirs()
 
-    val fileName = Paths.get(targetDir.toString, url.split("/").last)
+    val url = Updater.URL_NATIONAL.format(date)
+    val fileName = Paths.get(DIR_DATA.toString, url.split("/").last)
 
     if (!fileName.toFile.exists()) {
       println(s"Download $url")
@@ -146,7 +131,7 @@ class Updater extends Actor {
   }
 
   private def readDailyData(): Seq[DayRecord] = {
-    DIR_DATA_NATIONAL
+    DIR_DATA
       .toFile
       .listFiles()
       .map(FileReader.readDay)
