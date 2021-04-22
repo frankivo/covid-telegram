@@ -30,10 +30,9 @@ object FileReader {
   private def readDay(reader: CSVReader): DayRecord = {
     val record = reader
       .allWithHeaders()
-      .filter(_ ("Type") == "Totaal")
       .map(row => {
-        val date = LocalDate.parse(row("Datum"))
-        val count = row("Aantal").toLongOption.getOrElse(0L)
+        val date = LocalDate.parse(row("date"))
+        val count = row("new.infection").toLongOption.getOrElse(0L)
         DayRecord(date, count)
       })
       .head
