@@ -1,6 +1,6 @@
 package com.github.frankivo
 
-import com.github.frankivo.model.{DayRecord, MunicipalRecord}
+import com.github.frankivo.model.DayRecord
 import com.github.tototoshi.csv.CSVReader
 
 import java.io.File
@@ -37,35 +37,6 @@ object FileReader {
       })
       .head
     reader.close()
-    record
-  }
-
-  /**
-   * Read municipal data from file.
-   *
-   * @param source Location of the File.
-   * @return MunicipalRecord with covid data.
-   */
-  def readMunicipal(source: BufferedSource): MunicipalRecord = {
-    val reader = CSVReader.open(source)
-    val data = reader
-      .allWithHeaders()
-      .filter(_ ("Type") == "Totaal")
-      .filter(_ ("Gemeentecode") != "-1")
-
-    val record = MunicipalRecord(
-      LocalDate.parse(data.head("Datum")),
-
-      data.map(row => {
-        (
-          row("Gemeentenaam"),
-          row("Aantal").toLongOption.getOrElse(0L)
-        )
-      }).toMap
-    )
-
-    reader.close()
-
     record
   }
 }

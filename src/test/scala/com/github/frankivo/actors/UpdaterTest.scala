@@ -18,11 +18,5 @@ object UpdaterTest extends TestSuite {
         .dateRange()
         .last ==> LocalDate.now()
     }
-
-    test("formatted string should be correct date") {
-      val date = LocalDate.parse("2020-12-29")
-      Updater.formatDate(date) ==> "20201229"
-    }
   }
-
 }

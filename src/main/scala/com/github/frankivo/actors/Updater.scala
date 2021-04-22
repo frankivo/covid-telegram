@@ -9,7 +9,6 @@ import scalaj.http.Http
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
-import java.time.format.DateTimeFormatter
 import java.time.{Duration, LocalDate}
 import scala.util.Try
 
@@ -28,22 +27,13 @@ object Updater {
   def dateRange(start: LocalDate = COVID_EPOCH): Seq[LocalDate] = {
     val dayCounts = Duration.between(start.atStartOfDay(), LocalDate.now().atStartOfDay()).toDays
 
-    (0 to dayCounts.toInt)
-      .map(start.plusDays(_))
+    (0 to dayCounts.toInt).map(start.plusDays(_))
   }
-
-  /**
-   * Format a date.
-   *
-   * @param date Date to format.
-   * @return Formatted String.
-   */
-  def formatDate(date: LocalDate): String = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
   /**
    * Git repo with data.
    */
-  val URL_SOURCE: String = "https://github.com/J535D165/CoronaWatchNL/tree/master/data-geo"
+  val URL_SOURCE: String = "https://github.com/mzelst/covid-19"
 
   /**
    * String format with url to download national data.
@@ -53,7 +43,7 @@ object Updater {
 
 /**
  * Downloads CSV data from GitHub.
- * This data contains daily national and municipal covid statistics.
+ * This data contains daily national covid statistics.
  */
 class Updater extends Actor {
 
@@ -103,7 +93,6 @@ class Updater extends Actor {
       .dateRange()
       .foreach(download)
   }
-
 
   /**
    * Downloads a file into a directory.
