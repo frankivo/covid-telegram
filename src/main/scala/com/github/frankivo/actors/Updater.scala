@@ -79,7 +79,8 @@ class Updater extends Actor {
 
     context.become(onMessage(true))
 
-    s"Done: I have data for $countAfter days"
+    val latest = latestDate()
+    s"Done: latest file is from ${latest.toString}"
   }
 
   /**
@@ -126,5 +127,15 @@ class Updater extends Actor {
       .listFiles()
       .map(FileReader.readDay)
       .toSeq
+  }
+
+  private def latestDate() : LocalDate = {
+    DIR_DATA
+      .toFile
+      .listFiles()
+      .map(_.getName)
+      .map(_.substring(12, 22))
+      .map(LocalDate.parse(_))
+      .maxBy(d => d)
   }
 }
