@@ -19,5 +19,9 @@ object DateHelperTest extends TestSuite {
     test("week 1") {
       LocalDate.parse("2021-01-04").weekNumber ==> 1
     }
+
+    test("birthday") {
+      LocalDate.parse("1984-04-25").weekNumber ==> 17
+    }
   }
 }
