@@ -78,13 +78,16 @@ class CovidStats extends Actor {
    */
   private def graphWeeks(stats: DayRecords): Unit = {
     val currentWeek = LocalDate.now.weekNumber
+    val currentYear = LocalDate.now.getYear
 
     val weekData = stats
       .data
       .groupBy(d => (d.date.getYear, d.date.weekNumber))
       .map(x => {
         val count = {
-          if (currentWeek == x._1._2) (x._2.map(c => c.count).sum / x._2.length) * 7
+          // Day average times seven for current week.
+          if (currentWeek == x._1._2 && currentYear == x._1._1) (x._2.map(c => c.count).sum / x._2.length) * 7
+          // Sum of week for other weeks.
           else x._2.map(c => c.count).sum
         }
         WeekRecord(year = x._1._1, weekOfYear = x._1._2, count = count)
