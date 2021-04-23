@@ -4,10 +4,9 @@ import akka.actor.Actor
 import com.github.frankivo.CovidBot
 import com.github.frankivo.messages._
 import com.github.frankivo.model.{DayRecord, DayRecords, WeekRecord}
+import com.github.frankivo.util.DateHelper.LocalDateExtender
 
 import java.time.LocalDate
-import java.time.temporal.WeekFields
-import java.util.Locale
 import scala.util.Try
 
 object CovidStats {
@@ -78,21 +77,21 @@ class CovidStats extends Actor {
    * @param stats All covid daily data.
    */
   private def graphWeeks(stats: DayRecords): Unit = {
+    val currentWeek = LocalDate.now.weekNumber
+
     val weekData = stats
       .data
-      .groupBy(d => (d.date.getYear, weekNumber(d.date)))
-      .map(x => WeekRecord(year = x._1._1, weekOfYear = x._1._2, count = x._2.map(c => c.count).sum))
+      .groupBy(d => (d.date.getYear, d.date.weekNumber))
+      .map(x => {
+        val count = {
+          if (currentWeek == x._1._2) (x._2.map(c => c.count).sum / x._2.length) * 7
+          else x._2.map(c => c.count).sum
+        }
+        WeekRecord(year = x._1._1, weekOfYear = x._1._2, count = count)
+      })
       .toSeq
     CovidBot.ACTOR_GRAPHS ! CreateWeeklyGraph(weekData)
   }
-
-  /**
-   * Calculates the weeknumber for any LocalDate.
-   *
-   * @param date Input date to calculate weeknumber for.
-   * @return Weeknumber.
-   */
-  private def weekNumber(date: LocalDate): Int = date.get(WeekFields.of(Locale.GERMANY).weekOfYear())
 
   private def getDayCount(stats: DayRecords, date: Option[String]): String = {
     if (stats == null) return "Data has not been pulled yet."
