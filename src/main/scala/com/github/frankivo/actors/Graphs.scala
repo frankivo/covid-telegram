@@ -2,7 +2,7 @@ package com.github.frankivo.actors
 
 import akka.actor.Actor
 import com.github.frankivo.CovidBot
-import com.github.frankivo.JFreeChart.{FifthWeekAxis, FirstDateAxis, FirstDateBarRenderer}
+import com.github.frankivo.JFreeChart.{FifthWeekAxis, FirstDateAxis, FirstDateBarRenderer, LastWeekBarRenderer}
 import com.github.frankivo.messages._
 import com.github.frankivo.model.{DayRecord, WeekRecord}
 import org.jfree.chart.{ChartFactory, ChartUtils}
@@ -114,9 +114,10 @@ class Graphs extends Actor {
     val year = data.head.year
 
     val dataset = new DefaultCategoryDataset
-    data
+    val sorted = data
       .sortBy(_.weekOfYear)
-      .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
+
+    sorted.foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
 
     val barChart = ChartFactory.createBarChart(
       s"Cases $year per week",
@@ -126,6 +127,7 @@ class Graphs extends Actor {
     )
     barChart.removeLegend()
     barChart.getCategoryPlot.setDomainAxis(new FifthWeekAxis)
+    barChart.getCategoryPlot.setRenderer(new LastWeekBarRenderer(sorted))
 
     val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, s"$year.png").toFile
     imgFile.delete()
@@ -134,9 +136,12 @@ class Graphs extends Actor {
 
   private def createWeeklyRollingGraph(data: Seq[WeekRecord]): Unit = {
     val dataset = new DefaultCategoryDataset
-    data
+
+    val sorted = data
       .sortBy(w => (w.year, w.weekOfYear))
       .takeRight(Graphs.ROLLINGS_WEEKS)
+
+    sorted
       .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
 
     val barChart = ChartFactory.createBarChart(
@@ -147,6 +152,7 @@ class Graphs extends Actor {
     )
     barChart.removeLegend()
     barChart.getCategoryPlot.setDomainAxis(new FifthWeekAxis)
+    barChart.getCategoryPlot.setRenderer(new LastWeekBarRenderer(sorted))
 
     Graphs.FILE_ROLLINGS_WEEKS.delete()
     ChartUtils.saveChartAsPNG(Graphs.FILE_ROLLINGS_WEEKS, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
