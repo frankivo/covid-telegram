@@ -1,9 +1,10 @@
 package com.github.frankivo.actors
 
 import akka.actor.Actor
+import com.github.frankivo.CovidBot
 import com.github.frankivo.messages.{RefreshData, RequestSource, TelegramText, UpdateAll}
 import com.github.frankivo.model.DayRecord
-import com.github.frankivo.{CovidBot, FileReader}
+import com.github.frankivo.util.FileReader
 import scalaj.http.Http
 
 import java.io.FileOutputStream

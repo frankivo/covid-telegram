@@ -1,4 +1,4 @@
-package com.github.frankivo
+package com.github.frankivo.util
 
 import com.github.frankivo.model.DayRecord
 import com.github.tototoshi.csv.CSVReader
