@@ -10,7 +10,7 @@ libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.6.14"
 libraryDependencies += "org.jfree" % "jfreechart" % "1.5.3"
 libraryDependencies += "org.scalaj" %% "scalaj-http" % "2.4.2"
 
-libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.8" % "test"
+libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.10" % "test"
 testFrameworks += new TestFramework("utest.runner.Framework")
 
 scalacOptions := Seq("-unchecked", "-deprecation")
