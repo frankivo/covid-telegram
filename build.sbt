@@ -1,3 +1,5 @@
+import com.typesafe.sbt.packager.docker.Cmd
+
 name := "covid-telegram"
 
 version := "0.1"
@@ -20,3 +22,14 @@ assembly / assemblyMergeStrategy := {
   case "META-INF/io.netty.versions.properties" => MergeStrategy.concat
   case x => (assembly / assemblyMergeStrategy).value(x)
 }
+
+enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)
+
+dockerBaseImage := "openjdk:8-alpine"
+dockerAlias := dockerAlias.value.withName("oosterhuisf/covid-telegram").withTag(Option("latest"))
+dockerCommands ++= Seq(
+  Cmd("USER", "root"),
+  Cmd("RUN", "apk add --no-cache ttf-dejavu"),
+  Cmd("USER", "USER 1001:0"),
+)
