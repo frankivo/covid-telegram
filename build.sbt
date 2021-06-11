@@ -1,3 +1,5 @@
+import com.typesafe.sbt.packager.docker.Cmd
+
 name := "covid-telegram"
 
 version := "0.1"
@@ -15,8 +17,16 @@ testFrameworks += new TestFramework("utest.runner.Framework")
 
 scalacOptions := Seq("-unchecked", "-deprecation")
 
-assembly / assemblyMergeStrategy := {
-  case "META-INF/versions/9/module-info.class" => MergeStrategy.concat
-  case "META-INF/io.netty.versions.properties" => MergeStrategy.concat
-  case x => (assembly / assemblyMergeStrategy).value(x)
+enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)
+
+dockerBaseImage := "openjdk:8-alpine"
+dockerAlias := dockerAlias.value.withName("oosterhuisf/covid-telegram").withTag(Option("latest"))
+
+dockerCommands := dockerCommands.value.flatMap {
+  case Cmd("USER", args@_*) if args.contains("1001:0") => Seq(
+    Cmd("RUN", "apk add --no-cache ttf-dejavu bash"),
+    Cmd("USER", args: _*)
+  )
+  case cmd => Seq(cmd)
 }
