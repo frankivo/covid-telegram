@@ -22,8 +22,8 @@ enablePlugins(DockerPlugin)
 
 dockerBaseImage := "openjdk:8-alpine"
 dockerAlias := dockerAlias.value.withName("oosterhuisf/covid-telegram").withTag(Option("latest"))
-dockerCommands ++= Seq(
-  Cmd("USER", "root"),
-  Cmd("RUN", "apk add --no-cache ttf-dejavu"),
-  Cmd("USER", "USER 1001:0"),
-)
+
+dockerCommands := dockerCommands.value.filterNot {
+  case Cmd("USER", _*) => true
+  case _ => false
+} :+ Cmd("RUN", "apk add --no-cache ttf-dejavu bash")
