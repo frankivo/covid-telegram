@@ -8,7 +8,7 @@ scalaVersion := "2.13.6"
 
 libraryDependencies += "com.github.pengrad" % "java-telegram-bot-api" % "5.1.0"
 libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.8"
-libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.6.14"
+libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.6.15"
 libraryDependencies += "org.jfree" % "jfreechart" % "1.5.3"
 libraryDependencies += "org.scalaj" %% "scalaj-http" % "2.4.2"
 
