@@ -22,7 +22,4 @@ jobs:
         password: ${{ secrets.DOCKERHUB }}
 
     - name: Build
-      run: docker build -t oosterhuisf/covid-telegram:latest .
-
-    - name: Push
-      run: docker push oosterhuisf/covid-telegram:latest
+      run: sbt "Docker / publish"
