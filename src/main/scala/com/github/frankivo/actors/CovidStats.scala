@@ -19,7 +19,7 @@ class CovidStats extends Actor {
 
   private def onMessage(stats: DayRecords): Receive = {
     case e: RequestAllTimeHigh => allTimeHigh(e, stats)
-    case e: RequestCasesForDate => CovidBot.ACTOR_TELEGRAM ! TelegramText(e.destination, getDayCount(stats, e.date))
+    case e: RequestCasesForDate => getDayCount(e, stats)
     case e: RefreshData => updateStats(e, stats)
   }
 
@@ -97,14 +97,21 @@ class CovidStats extends Actor {
     CovidBot.ACTOR_GRAPHS ! CreateWeeklyGraph(weekData)
   }
 
-  private def getDayCount(stats: DayRecords, date: Option[String]): String = {
+  private def getDayCount(req: RequestCasesForDate, stats: DayRecords): Unit = {
     if (stats == null) return "Data has not been pulled yet."
 
-    if (date.isEmpty) return caseString(stats.latest())
+    val date = req.date
 
-    val parsedDate = Try(LocalDate.parse(date.get)).getOrElse(return s"Cannot parse date '${date.get}'")
-    val cases = stats.findDayCount(parsedDate).getOrElse(return s"No data found for $parsedDate")
-    caseString(DayRecord(parsedDate, cases))
+    val msg =
+      if (date.isEmpty)
+        caseString(stats.latest())
+      else {
+        val parsedDate = Try(LocalDate.parse(date.get)).getOrElse(return s"Cannot parse date '${date.get}'")
+        val cases = stats.findDayCount(parsedDate).getOrElse(return s"No data found for $parsedDate")
+        caseString(DayRecord(parsedDate, cases))
+      }
+
+    CovidBot.ACTOR_TELEGRAM ! TelegramText(req.destination, msg)
   }
 
   private def caseString(rec: DayRecord): String = s"Cases for ${rec.date}: ${rec.count}"
