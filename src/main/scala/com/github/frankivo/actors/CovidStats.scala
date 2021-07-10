@@ -18,11 +18,12 @@ class CovidStats extends Actor {
   override def receive: Receive = onMessage(null)
 
   private def onMessage(stats: DayRecords): Receive = {
+    case e: RequestAllTimeHigh => allTimeHigh(e, stats)
     case e: RequestCasesForDate => CovidBot.ACTOR_TELEGRAM ! TelegramText(e.destination, getDayCount(stats, e.date))
-    case e: RefreshData => updateStats(stats, e)
+    case e: RefreshData => updateStats(e, stats)
   }
 
-  private def updateStats(stats: DayRecords, update: RefreshData): Unit = {
+  private def updateStats(update: RefreshData, stats: DayRecords): Unit = {
     val isFirstRun = stats == null
 
     val newStats = DayRecords(update.data)
@@ -111,6 +112,13 @@ class CovidStats extends Actor {
   private def broadcastToday(stats: DayRecords): Unit = {
     stats
       .findDayCount(LocalDate.now())
-      .foreach(r => CovidBot.ACTOR_TELEGRAM ! TelegramText(Telegram.broadcastId, s"There are ${r} new cases!"))
+      .foreach(r => CovidBot.ACTOR_TELEGRAM ! TelegramText(Telegram.broadcastId, s"There are $r new cases!"))
+  }
+
+  private def allTimeHigh(req: RequestAllTimeHigh, stats: DayRecords): Unit = {
+    if (stats == null) return "Data has not been pulled yet."
+
+    val max = stats.max
+    CovidBot.ACTOR_TELEGRAM ! TelegramText(req.destination, s"'All time high' has been set on ${max.date}. Amount of cases on that day: ${max.count}.")
   }
 }
