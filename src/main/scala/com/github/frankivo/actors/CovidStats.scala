@@ -125,7 +125,7 @@ class CovidStats extends Actor {
   private def allTimeHigh(req: RequestAllTimeHigh, stats: DayRecords): Unit = {
     if (stats == null) return "Data has not been pulled yet."
 
-    val max = stats.max
+    val max = stats.max()
     CovidBot.ACTOR_TELEGRAM ! TelegramText(req.destination, s"'All time high' has been set on ${max.date}. Amount of cases on that day: ${max.count}.")
   }
 }
