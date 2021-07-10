@@ -18,8 +18,8 @@ class CovidStats extends Actor {
   override def receive: Receive = onMessage(null)
 
   private def onMessage(stats: DayRecords): Receive = {
-    case e: RequestAllTimeHigh => allTimeHigh(e, stats)
-    case e: RequestCasesForDate => getDayCount(e, stats)
+    case e: RequestAllTimeHigh => CovidBot.ACTOR_TELEGRAM ! TelegramText(e.destination, allTimeHigh(e, stats))
+    case e: RequestCasesForDate => CovidBot.ACTOR_TELEGRAM ! TelegramText(e.destination, getDayCount(e, stats))
     case e: RefreshData => updateStats(e, stats)
   }
 
@@ -97,21 +97,17 @@ class CovidStats extends Actor {
     CovidBot.ACTOR_GRAPHS ! CreateWeeklyGraph(weekData)
   }
 
-  private def getDayCount(req: RequestCasesForDate, stats: DayRecords): Unit = {
+  private def getDayCount(req: RequestCasesForDate, stats: DayRecords): String = {
     if (stats == null) return "Data has not been pulled yet."
 
     val date = req.date
 
-    val msg =
-      if (date.isEmpty)
-        caseString(stats.latest())
-      else {
-        val parsedDate = Try(LocalDate.parse(date.get)).getOrElse(return s"Cannot parse date '${date.get}'")
-        val cases = stats.findDayCount(parsedDate).getOrElse(return s"No data found for $parsedDate")
-        caseString(DayRecord(parsedDate, cases))
-      }
+    if (date.isEmpty)
+      return caseString(stats.latest())
 
-    CovidBot.ACTOR_TELEGRAM ! TelegramText(req.destination, msg)
+    val parsedDate = Try(LocalDate.parse(date.get)).getOrElse(return s"Cannot parse date '${date.get}'")
+    val cases = stats.findDayCount(parsedDate).getOrElse(return s"No data found for $parsedDate")
+    caseString(DayRecord(parsedDate, cases))
   }
 
   private def caseString(rec: DayRecord): String = s"Cases for ${rec.date}: ${rec.count}"
@@ -122,10 +118,10 @@ class CovidStats extends Actor {
       .foreach(r => CovidBot.ACTOR_TELEGRAM ! TelegramText(Telegram.broadcastId, s"There are $r new cases!"))
   }
 
-  private def allTimeHigh(req: RequestAllTimeHigh, stats: DayRecords): Unit = {
+  private def allTimeHigh(req: RequestAllTimeHigh, stats: DayRecords): String = {
     if (stats == null) return "Data has not been pulled yet."
 
     val max = stats.max()
-    CovidBot.ACTOR_TELEGRAM ! TelegramText(req.destination, s"'All time high' has been set on ${max.date}. Amount of cases on that day: ${max.count}.")
+    s"'All time high' has been set on ${max.date}. Amount of cases on that day: ${max.count}."
   }
 }
