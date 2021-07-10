@@ -75,6 +75,7 @@ class Telegram extends Actor {
     commands
       .foreach(c => {
         c.cmd match {
+          case "/ath" => CovidBot.ACTOR_STATS ! RequestAllTimeHigh(c.destination)
           case "/cases" => CovidBot.ACTOR_STATS ! RequestCasesForDate(c.destination, c.parameter)
           case "/graph" => CovidBot.ACTOR_GRAPHS ! RequestRollingGraph(c.destination)
           case "/hi" => send(TelegramText(c.destination, "Hi!"))

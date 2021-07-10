@@ -11,7 +11,8 @@ object DayRecordsTest extends TestSuite {
       DayRecord(LocalDate.parse("2020-03-01"), 2),
       DayRecord(LocalDate.parse("2020-06-11"), 3),
       DayRecord(LocalDate.parse("2020-03-02"), 4),
-      DayRecord(LocalDate.parse("2020-05-25"), 5)
+      DayRecord(LocalDate.parse("2020-05-25"), 5),
+      DayRecord(LocalDate.parse("2020-05-30"), 3)
     )
   )
 
@@ -26,6 +27,10 @@ object DayRecordsTest extends TestSuite {
 
     test("get record for non existing date") {
       testData.findDayCount(LocalDate.parse("2020-01-01")).isEmpty ==> true
+    }
+
+    test("get max record") {
+      testData.max().count ==> 5
     }
   }
 }

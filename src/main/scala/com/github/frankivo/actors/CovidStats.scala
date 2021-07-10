@@ -18,11 +18,12 @@ class CovidStats extends Actor {
   override def receive: Receive = onMessage(null)
 
   private def onMessage(stats: DayRecords): Receive = {
-    case e: RequestCasesForDate => CovidBot.ACTOR_TELEGRAM ! TelegramText(e.destination, getDayCount(stats, e.date))
-    case e: RefreshData => updateStats(stats, e)
+    case e: RequestAllTimeHigh => CovidBot.ACTOR_TELEGRAM ! TelegramText(e.destination, allTimeHigh(e, stats))
+    case e: RequestCasesForDate => CovidBot.ACTOR_TELEGRAM ! TelegramText(e.destination, getDayCount(e, stats))
+    case e: RefreshData => updateStats(e, stats)
   }
 
-  private def updateStats(stats: DayRecords, update: RefreshData): Unit = {
+  private def updateStats(update: RefreshData, stats: DayRecords): Unit = {
     val isFirstRun = stats == null
 
     val newStats = DayRecords(update.data)
@@ -96,10 +97,13 @@ class CovidStats extends Actor {
     CovidBot.ACTOR_GRAPHS ! CreateWeeklyGraph(weekData)
   }
 
-  private def getDayCount(stats: DayRecords, date: Option[String]): String = {
+  private def getDayCount(req: RequestCasesForDate, stats: DayRecords): String = {
     if (stats == null) return "Data has not been pulled yet."
 
-    if (date.isEmpty) return caseString(stats.latest())
+    val date = req.date
+
+    if (date.isEmpty)
+      return caseString(stats.latest())
 
     val parsedDate = Try(LocalDate.parse(date.get)).getOrElse(return s"Cannot parse date '${date.get}'")
     val cases = stats.findDayCount(parsedDate).getOrElse(return s"No data found for $parsedDate")
@@ -111,6 +115,13 @@ class CovidStats extends Actor {
   private def broadcastToday(stats: DayRecords): Unit = {
     stats
       .findDayCount(LocalDate.now())
-      .foreach(r => CovidBot.ACTOR_TELEGRAM ! TelegramText(Telegram.broadcastId, s"There are ${r} new cases!"))
+      .foreach(r => CovidBot.ACTOR_TELEGRAM ! TelegramText(Telegram.broadcastId, s"There are $r new cases!"))
+  }
+
+  private def allTimeHigh(req: RequestAllTimeHigh, stats: DayRecords): String = {
+    if (stats == null) return "Data has not been pulled yet."
+
+    val max = stats.max()
+    s"'All time high' has been set on ${max.date}. Amount of cases on that day: ${max.count}."
   }
 }

@@ -22,4 +22,10 @@ case class DayRecords(data: Seq[DayRecord]) {
    * @return Latest DayRecord.
    */
   def latest(): DayRecord = data.maxBy(_.date)
+
+  /**
+   * Get record with highest count.
+   * @return Max Dayrecord.
+   */
+  def max(): DayRecord = data.maxBy(_.count)
 }
