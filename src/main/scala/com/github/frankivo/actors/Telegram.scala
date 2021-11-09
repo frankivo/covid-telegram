@@ -66,7 +66,7 @@ class Telegram extends Actor {
       .filter(u => u.entities.exists(e => e.`type`.eq(MessageEntity.Type.bot_command)))
       .map(u => {
         val split = u.text.split(" ")
-        Command(u.chat().id(), split.head, Try(split(1)).toOption)
+        Command(destination = u.chat().id(), cmd = split.head.toLowerCase, parameter = Try(split(1)).toOption)
       })
     handleCommands(commands)
   }
@@ -90,7 +90,7 @@ class Telegram extends Actor {
       })
   }
 
-  private def versionText() : String = {
+  private def versionText(): String = {
     Seq(
       s"Running version: ${Version.VERSION_STRING}",
       s"Scala version: ${scala.util.Properties.versionString}",
