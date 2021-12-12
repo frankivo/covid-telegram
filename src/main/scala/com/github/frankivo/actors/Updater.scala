@@ -5,12 +5,10 @@ import com.github.frankivo.CovidBot
 import com.github.frankivo.messages.{RefreshData, RequestSource, TelegramText, UpdateAll}
 import com.github.frankivo.model.DayRecord
 import com.github.frankivo.util.FileReader
-import sttp.client3.Response.ExampleGet.uri
-import sttp.client3.{HttpURLConnectionBackend, UriContext, basicRequest, _}
-import sttp.model.{Uri, UriInterpolator}
+import sttp.client3.{HttpURLConnectionBackend, basicRequest}
+import sttp.model.Uri
 
 import java.io.FileOutputStream
-import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
 import java.time.{Duration, LocalDate}
