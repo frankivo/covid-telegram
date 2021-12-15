@@ -7,7 +7,7 @@ version := "0.1"
 scalaVersion := "2.13.7"
 
 libraryDependencies += "com.github.pengrad" % "java-telegram-bot-api" % "5.5.0"
-libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.8"
+libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.9"
 libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.6.17"
 libraryDependencies += "org.jfree" % "jfreechart" % "1.5.3"
 libraryDependencies += "com.softwaremill.sttp.client3" %% "core" % "3.3.17"
