@@ -23,12 +23,14 @@ scalacOptions := Seq("-unchecked", "-deprecation")
 enablePlugins(JavaAppPackaging)
 enablePlugins(DockerPlugin)
 
-dockerBaseImage := "openjdk:8-alpine"
+dockerBaseImage := "alpine:latest"
 dockerAlias := dockerAlias.value.withName("oosterhuisf/covid-telegram").withTag(Option("latest"))
+
+lazy val osDependencies = Seq("bash", "fontconfig", "openjdk17-jre", "ttf-dejavu")
 
 dockerCommands := dockerCommands.value.flatMap {
   case Cmd("USER", args@_*) if args.contains("1001:0") => Seq(
-    Cmd("RUN", "apk add --no-cache ttf-dejavu bash"),
+    Cmd("RUN", "apk add --no-cache", osDependencies.mkString(" ")),
     Cmd("USER", args: _*)
   )
   case cmd => Seq(cmd)
