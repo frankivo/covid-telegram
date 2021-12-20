@@ -93,7 +93,7 @@ class Telegram extends Actor {
   private def versionText(): String = {
     Seq(
       s"Running version: ${Version.VERSION_STRING}",
-      s"Scala version: ${dotty.tools.dotc.config.Properties.versionString}",
+      s"Scala version: ${scala.util.Properties.versionString}",
       s"Java version: ${scala.util.Properties.javaVersion}",
     )
       .mkString("\n")
