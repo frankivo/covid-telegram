@@ -15,4 +15,6 @@ case class WeekRecord(year: Int, weekOfYear: Int, count: Long) {
   def isCurrentWeek: Boolean = {
     LocalDate.now.weekNumber == weekOfYear && LocalDate.now.getYear == year
   }
+
+  override def clone(): AnyRef = super.clone()
 }

@@ -94,6 +94,7 @@ class Telegram extends Actor {
     Seq(
       s"Running version: ${Version.VERSION_STRING}",
       s"Scala version: ${scala.util.Properties.versionString}",
+      s"Java version: ${scala.util.Properties.javaVersion}",
     )
       .mkString("\n")
   }
