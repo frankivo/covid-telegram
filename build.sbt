@@ -17,9 +17,9 @@ ThisBuild / libraryDependencies += "com.softwaremill.sttp.client3" %% "core" % "
 
 libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.10" % "test"
 testFrameworks += new TestFramework("utest.runner.Framework")
-//
-//scalacOptions := Seq("-unchecked", "-deprecation")
-//
+
+scalacOptions := Seq("-unchecked", "-deprecation")
+
 enablePlugins(JavaAppPackaging)
 enablePlugins(DockerPlugin)
 
