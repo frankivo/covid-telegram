@@ -19,5 +19,3 @@ case class LastWeekBarRenderer(data: Seq[WeekRecord]) extends BarRenderer {
 
   override def clone(): AnyRef = super.clone()
 }
-
-//extension (br: BarRenderer)
