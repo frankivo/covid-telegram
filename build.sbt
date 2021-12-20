@@ -1,4 +1,4 @@
-//import com.typesafe.sbt.packager.docker.Cmd
+import com.typesafe.sbt.packager.docker.Cmd
 
 ThisBuild / version := "0.1"
 
@@ -20,16 +20,16 @@ testFrameworks += new TestFramework("utest.runner.Framework")
 //
 //scalacOptions := Seq("-unchecked", "-deprecation")
 //
-//enablePlugins(JavaAppPackaging)
-//enablePlugins(DockerPlugin)
-//
-//dockerBaseImage := "openjdk:8-alpine"
-//dockerAlias := dockerAlias.value.withName("oosterhuisf/covid-telegram").withTag(Option("latest"))
-//
-//dockerCommands := dockerCommands.value.flatMap {
-//  case Cmd("USER", args@_*) if args.contains("1001:0") => Seq(
-//    Cmd("RUN", "apk add --no-cache ttf-dejavu bash"),
-//    Cmd("USER", args: _*)
-//  )
-//  case cmd => Seq(cmd)
-//}
+enablePlugins(JavaAppPackaging)
+enablePlugins(DockerPlugin)
+
+dockerBaseImage := "openjdk:8-alpine"
+dockerAlias := dockerAlias.value.withName("oosterhuisf/covid-telegram").withTag(Option("latest"))
+
+dockerCommands := dockerCommands.value.flatMap {
+  case Cmd("USER", args@_*) if args.contains("1001:0") => Seq(
+    Cmd("RUN", "apk add --no-cache ttf-dejavu bash"),
+    Cmd("USER", args: _*)
+  )
+  case cmd => Seq(cmd)
+}
