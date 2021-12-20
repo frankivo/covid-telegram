@@ -9,12 +9,9 @@ lazy val root = (project in file("."))
     name := "covid-telegram"
   )
 
-resolvers +=
-  "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-
 ThisBuild / libraryDependencies += "com.github.pengrad" % "java-telegram-bot-api" % "5.5.0"
 ThisBuild / libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.9"
-ThisBuild / libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.6.17+99-250474f0-SNAPSHOT"
+ThisBuild / libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.6.18"
 ThisBuild / libraryDependencies += "org.jfree" % "jfreechart" % "1.5.3"
 ThisBuild / libraryDependencies += "com.softwaremill.sttp.client3" %% "core" % "3.3.18"
 
