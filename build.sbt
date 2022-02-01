@@ -15,7 +15,7 @@ ThisBuild / libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.6.18
 ThisBuild / libraryDependencies += "org.jfree" % "jfreechart" % "1.5.3"
 ThisBuild / libraryDependencies += "com.softwaremill.sttp.client3" %% "core" % "3.4.1"
 
-libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.10" % "test"
+libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.11" % "test"
 testFrameworks += new TestFramework("utest.runner.Framework")
 
 scalacOptions := Seq("-unchecked", "-deprecation")
