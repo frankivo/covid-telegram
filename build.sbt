@@ -9,7 +9,7 @@ lazy val root = (project in file("."))
     name := "covid-telegram"
   )
 
-ThisBuild / libraryDependencies += "com.github.pengrad" % "java-telegram-bot-api" % "5.6.0"
+ThisBuild / libraryDependencies += "com.github.pengrad" % "java-telegram-bot-api" % "5.7.0"
 ThisBuild / libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.10"
 ThisBuild / libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.6.18"
 ThisBuild / libraryDependencies += "org.jfree" % "jfreechart" % "1.5.3"
