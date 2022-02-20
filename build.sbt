@@ -13,7 +13,7 @@ ThisBuild / libraryDependencies += "com.github.pengrad" % "java-telegram-bot-api
 ThisBuild / libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.10"
 ThisBuild / libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.6.18"
 ThisBuild / libraryDependencies += "org.jfree" % "jfreechart" % "1.5.3"
-ThisBuild / libraryDependencies += "com.softwaremill.sttp.client3" %% "core" % "3.4.2"
+ThisBuild / libraryDependencies += "com.softwaremill.sttp.client3" %% "core" % "3.5.0"
 
 libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.11" % "test"
 testFrameworks += new TestFramework("utest.runner.Framework")
