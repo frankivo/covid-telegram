@@ -1,7 +1,7 @@
 package com.github.frankivo.util
 
 import com.github.frankivo.model.DayRecord
-import com.github.tototoshi.csv.CSVReader
+import com.github.tototoshi.csv.{CSVReader, defaultCSVFormat}
 
 import java.io.File
 import java.time.LocalDate

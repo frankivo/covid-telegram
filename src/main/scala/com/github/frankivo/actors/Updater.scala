@@ -5,7 +5,8 @@ import com.github.frankivo.CovidBot
 import com.github.frankivo.messages.{RefreshData, RequestSource, TelegramText, UpdateAll}
 import com.github.frankivo.model.DayRecord
 import com.github.frankivo.util.FileReader
-import scalaj.http.Http
+import sttp.client3.{HttpURLConnectionBackend, basicRequest}
+import sttp.model.Uri
 
 import java.io.FileOutputStream
 import java.nio.charset.StandardCharsets
@@ -105,15 +106,20 @@ class Updater extends Actor {
     DIR_DATA.toFile.mkdirs()
 
     val url = Updater.URL_NATIONAL.format(date)
+    val uri = Uri.parse(url).getOrElse(throw new Exception(s"Cannot parse URL: ${url} "))
+
     val fileName = Paths.get(DIR_DATA.toString, url.split("/").last)
 
     if (!fileName.toFile.exists()) {
       println(s"Download $url")
+      val request = basicRequest.get(uri)
+      val backend = HttpURLConnectionBackend()
+      val response = request.send(backend)
 
-      val result = Http(url).asString
-      if (result.isSuccess) {
+      if (response.code.isSuccess) {
         val out = new FileOutputStream(fileName.toFile)
-        out.write(result.body.getBytes(StandardCharsets.UTF_8))
+        val body = response.body.getOrElse("")
+        out.write(body.getBytes(StandardCharsets.UTF_8))
         out.close()
       }
       else println(s"Could not download: $url")
@@ -129,7 +135,7 @@ class Updater extends Actor {
       .toSeq
   }
 
-  private def latestDate() : LocalDate = {
+  private def latestDate(): LocalDate = {
     DIR_DATA
       .toFile
       .listFiles()

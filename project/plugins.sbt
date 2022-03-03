@@ -1,1 +1,1 @@
-addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.2-frank")
+addSbtPlugin("com.github.sbt" % "sbt-native-packager" % "1.9.9-frank")

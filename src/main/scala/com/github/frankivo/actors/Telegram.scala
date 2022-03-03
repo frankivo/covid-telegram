@@ -34,8 +34,8 @@ class Telegram extends Actor {
   case class Command(destination: Long, cmd: String, parameter: Option[String])
 
   val bot = new TelegramBot(Telegram.apiKey)
-  send(TelegramText(Telegram.ownerId, s"Hello World. I'm running version: ${Version.VERSION_STRING}"))
-  println(s"I'm running version: ${Version.VERSION_STRING}")
+  send(TelegramText(Telegram.ownerId, s"Hello World.\n" + versionText()))
+  println(versionText())
 
   listenForUpdates()
 
@@ -66,7 +66,7 @@ class Telegram extends Actor {
       .filter(u => u.entities.exists(e => e.`type`.eq(MessageEntity.Type.bot_command)))
       .map(u => {
         val split = u.text.split(" ")
-        Command(u.chat().id(), split.head, Try(split(1)).toOption)
+        Command(destination = u.chat().id(), cmd = split.head.toLowerCase, parameter = Try(split(1)).toOption)
       })
     handleCommands(commands)
   }
@@ -82,12 +82,21 @@ class Telegram extends Actor {
           case "/month" => CovidBot.ACTOR_GRAPHS ! RequestMonthGraph(c.destination, c.parameter)
           case "/refresh" => CovidBot.ACTOR_UPDATER ! UpdateAll(Some(c.destination))
           case "/source" => CovidBot.ACTOR_UPDATER ! RequestSource(c.destination)
-          case "/version" => send(TelegramText(c.destination, s"Running version: ${Version.VERSION_STRING}"))
+          case "/version" => send(TelegramText(c.destination, versionText()))
           case "/weekly" => CovidBot.ACTOR_GRAPHS ! RequestWeekGraph(c.destination, c.parameter)
 
           case e => send(TelegramText(c.destination, s"Unknown command: $e"))
         }
       })
+  }
+
+  private def versionText(): String = {
+    Seq(
+      s"Running version: ${Version.VERSION_STRING}",
+      s"Scala version: ${scala.util.Properties.versionString}",
+      s"Java version: ${scala.util.Properties.javaVersion}",
+    )
+      .mkString("\n")
   }
 
   def send(txt: TelegramText): Unit = bot.execute(new SendMessage(txt.destination, txt.body))

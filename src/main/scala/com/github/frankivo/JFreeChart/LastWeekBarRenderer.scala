@@ -11,9 +11,11 @@ import java.awt.{Color, Paint}
  *
  * @param data Covid data.
  */
-class LastWeekBarRenderer(data: Seq[WeekRecord]) extends BarRenderer {
+case class LastWeekBarRenderer(data: Seq[WeekRecord]) extends BarRenderer {
   override def getItemPaint(row: Int, column: Int): Paint = {
     if (!data(column).isCurrentWeek) Color.RED
     else Color.ORANGE
   }
+
+  override def clone(): AnyRef = super.clone()
 }

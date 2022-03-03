@@ -1,18 +1,21 @@
 import com.typesafe.sbt.packager.docker.Cmd
 
-name := "covid-telegram"
+ThisBuild / version := "0.1"
 
-version := "0.1"
+ThisBuild / scalaVersion := "3.1.1"
 
-scalaVersion := "2.13.6"
+lazy val root = (project in file("."))
+  .settings(
+    name := "covid-telegram"
+  )
 
-libraryDependencies += "com.github.pengrad" % "java-telegram-bot-api" % "5.2.0"
-libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.8"
-libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.6.15"
-libraryDependencies += "org.jfree" % "jfreechart" % "1.5.3"
-libraryDependencies += "org.scalaj" %% "scalaj-http" % "2.4.2"
+ThisBuild / libraryDependencies += "com.github.pengrad" % "java-telegram-bot-api" % "5.7.0"
+ThisBuild / libraryDependencies += "com.github.tototoshi" %% "scala-csv" % "1.3.10"
+ThisBuild / libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.6.18"
+ThisBuild / libraryDependencies += "org.jfree" % "jfreechart" % "1.5.3"
+ThisBuild / libraryDependencies += "com.softwaremill.sttp.client3" %% "core" % "3.5.0"
 
-libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.10" % "test"
+libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.11" % "test"
 testFrameworks += new TestFramework("utest.runner.Framework")
 
 scalacOptions := Seq("-unchecked", "-deprecation")
@@ -20,7 +23,16 @@ scalacOptions := Seq("-unchecked", "-deprecation")
 enablePlugins(JavaAppPackaging)
 enablePlugins(DockerPlugin)
 
-dockerBaseImage := "openjdk:8-alpine"
+dockerBaseImage := "alpine:latest"
 dockerAlias := dockerAlias.value.withName("oosterhuisf/covid-telegram").withTag(Option("latest"))
 
+lazy val osDependencies = Seq("bash", "fontconfig", "openjdk17-jre", "ttf-dejavu")
+
+dockerCommands := dockerCommands.value.flatMap {
+  case Cmd("USER", args@_*) if args.contains("1001:0") => Seq(
+    Cmd("RUN", "apk add --no-cache", osDependencies.mkString(" ")),
+    Cmd("USER", args: _*)
+  )
+  case cmd => Seq(cmd)
+}
 dockerCommandsPrepend := Seq(Cmd("RUN", "apk add --no-cache ttf-dejavu bash"))
