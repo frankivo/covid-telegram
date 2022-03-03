@@ -28,11 +28,9 @@ dockerAlias := dockerAlias.value.withName("oosterhuisf/covid-telegram").withTag(
 
 lazy val osDependencies = Seq("bash", "fontconfig", "openjdk17-jre", "ttf-dejavu")
 
-dockerCommands := dockerCommands.value.flatMap {
-  case Cmd("USER", args@_*) if args.contains("1001:0") => Seq(
-    Cmd("RUN", "apk add --no-cache", osDependencies.mkString(" ")),
-    Cmd("USER", args: _*)
-  )
-  case cmd => Seq(cmd)
-}
-dockerCommandsPrepend := Seq(Cmd("RUN", "apk add --no-cache ttf-dejavu bash"))
+lazy val cmds = Seq(Cmd("RUN", "echo banaan > frank.log"))
+
+dockerCommandsCustom := Map(
+  "image:after:from" -> (cmds :+ Cmd("RUN", "apk add --no-cache", osDependencies.mkString(" "))),
+  "image:after:workdir" -> cmds,
+)
