@@ -2,7 +2,12 @@ package com.github.frankivo.actors
 
 import akka.actor.Actor
 import com.github.frankivo.CovidBot
-import com.github.frankivo.JFreeChart.{FifthWeekAxis, FirstDateAxis, FirstDateBarRenderer, LastWeekBarRenderer}
+import com.github.frankivo.JFreeChart.{
+  FifthWeekAxis,
+  FirstDateAxis,
+  FirstDateBarRenderer,
+  LastWeekBarRenderer
+}
 import com.github.frankivo.messages._
 import com.github.frankivo.model.{DayRecord, WeekRecord}
 import org.jfree.chart.{ChartFactory, ChartUtils}
@@ -22,30 +27,35 @@ object Graphs {
 
   val ROLLINGS_WEEKS: Int = 50
 
-  val FILE_ROLLINGS_DAYS: File = Paths.get(Graphs.DIR_GRAPHS.toString, s"last_${CovidStats.ROLLING_DAYS}_days.png").toFile
-  val FILE_ROLLINGS_WEEKS: File = Paths.get(Graphs.DIR_GRAPHS.toString, s"last_${Graphs.ROLLINGS_WEEKS}_weeks.png").toFile
+  val FILE_ROLLINGS_DAYS: File = Paths
+    .get(
+      Graphs.DIR_GRAPHS.toString,
+      s"last_${CovidStats.ROLLING_DAYS}_days.png"
+    )
+    .toFile
+  val FILE_ROLLINGS_WEEKS: File = Paths
+    .get(Graphs.DIR_GRAPHS.toString, s"last_${Graphs.ROLLINGS_WEEKS}_weeks.png")
+    .toFile
 }
 
-/**
- * Create graphs on request.
- */
+/** Create graphs on request. */
 class Graphs extends Actor {
 
   override def receive: Receive = {
-    case e: CreateMonthGraph => createMonthGraph(e.data)
-    case e: CreateRollingGraph => createRollingGraph(e.data)
-    case e: CreateWeeklyGraph => createWeeklyGraphs(e.data)
-    case e: RequestMonthGraph => requestMonthGraph(e)
+    case e: CreateMonthGraph    => createMonthGraph(e.data)
+    case e: CreateRollingGraph  => createRollingGraph(e.data)
+    case e: CreateWeeklyGraph   => createWeeklyGraphs(e.data)
+    case e: RequestMonthGraph   => requestMonthGraph(e)
     case e: RequestRollingGraph => requestRollingGraph(e)
-    case e: RequestWeekGraph => requestWeekGraph(e)
+    case e: RequestWeekGraph    => requestWeekGraph(e)
   }
 
-  /**
-   * Creates a graph over the last N dates.
-   * Every first day of the month is being highlighted.
-   *
-   * @param data Covid data.
-   */
+  /** Creates a graph over the last N dates. Every first day of the month is
+    * being highlighted.
+    *
+    * @param data
+    *   Covid data.
+    */
   private def createRollingGraph(data: Seq[DayRecord]): Unit = {
     Graphs.DIR_GRAPHS.toFile.mkdirs()
 
@@ -65,7 +75,12 @@ class Graphs extends Actor {
     barChart.removeLegend()
 
     Graphs.FILE_ROLLINGS_DAYS.delete()
-    ChartUtils.saveChartAsPNG(Graphs.FILE_ROLLINGS_DAYS, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
+    ChartUtils.saveChartAsPNG(
+      Graphs.FILE_ROLLINGS_DAYS,
+      barChart,
+      Graphs.IMG_WIDTH,
+      Graphs.IMG_HEIGHT
+    )
   }
 
   private def createMonthGraph(data: Seq[DayRecord]): Unit = {
@@ -73,10 +88,12 @@ class Graphs extends Actor {
 
     val firstDate = data.head.date
 
-    val imgFile = Paths.get(
-      Graphs.DIR_MONTHS.toString,
-      s"${firstDate.getYear}_${firstDate.getMonthValue}.png"
-    ).toFile
+    val imgFile = Paths
+      .get(
+        Graphs.DIR_MONTHS.toString,
+        s"${firstDate.getYear}_${firstDate.getMonthValue}.png"
+      )
+      .toFile
 
     val doUpdate = !imgFile.exists() || isCurrentMonth(firstDate)
 
@@ -84,7 +101,9 @@ class Graphs extends Actor {
       val dataset = new DefaultCategoryDataset
       data
         .sortBy(_.date)
-        .foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.date.getDayOfMonth))
+        .foreach(s =>
+          dataset.setValue(s.count.toDouble, "Cases", s.date.getDayOfMonth)
+        )
 
       val barChart = ChartFactory.createBarChart(
         s"Cases ${camelCase(firstDate.getMonth.toString)} ${firstDate.getYear}",
@@ -95,7 +114,12 @@ class Graphs extends Actor {
       barChart.removeLegend()
 
       imgFile.delete()
-      ChartUtils.saveChartAsPNG(imgFile, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
+      ChartUtils.saveChartAsPNG(
+        imgFile,
+        barChart,
+        Graphs.IMG_WIDTH,
+        Graphs.IMG_HEIGHT
+      )
     }
   }
 
@@ -117,7 +141,9 @@ class Graphs extends Actor {
     val sorted = data
       .sortBy(_.weekOfYear)
 
-    sorted.foreach(s => dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear))
+    sorted.foreach(s =>
+      dataset.setValue(s.count.toDouble, "Cases", s.weekOfYear)
+    )
 
     val barChart = ChartFactory.createBarChart(
       s"Cases $year per week",
@@ -131,7 +157,12 @@ class Graphs extends Actor {
 
     val imgFile = Paths.get(Graphs.DIR_WEEKS.toString, s"$year.png").toFile
     imgFile.delete()
-    ChartUtils.saveChartAsPNG(imgFile, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
+    ChartUtils.saveChartAsPNG(
+      imgFile,
+      barChart,
+      Graphs.IMG_WIDTH,
+      Graphs.IMG_HEIGHT
+    )
   }
 
   private def createWeeklyRollingGraph(data: Seq[WeekRecord]): Unit = {
@@ -155,10 +186,16 @@ class Graphs extends Actor {
     barChart.getCategoryPlot.setRenderer(new LastWeekBarRenderer(sorted))
 
     Graphs.FILE_ROLLINGS_WEEKS.delete()
-    ChartUtils.saveChartAsPNG(Graphs.FILE_ROLLINGS_WEEKS, barChart, Graphs.IMG_WIDTH, Graphs.IMG_HEIGHT)
+    ChartUtils.saveChartAsPNG(
+      Graphs.FILE_ROLLINGS_WEEKS,
+      barChart,
+      Graphs.IMG_WIDTH,
+      Graphs.IMG_HEIGHT
+    )
   }
 
-  private def camelCase(str: String): String = str.take(1).toUpperCase() + str.drop(1).toLowerCase()
+  private def camelCase(str: String): String =
+    str.take(1).toUpperCase() + str.drop(1).toLowerCase()
 
   private def isCurrentMonth(date: LocalDate): Boolean = {
     val now = LocalDate.now()
@@ -175,16 +212,17 @@ class Graphs extends Actor {
         else (curYear, curMonth)
       }
 
-      val file = Paths.get(Graphs.DIR_MONTHS.toString, s"${year}_$month.png").toFile
+      val file =
+        Paths.get(Graphs.DIR_MONTHS.toString, s"${year}_$month.png").toFile
       if (file.exists())
         CovidBot.ACTOR_TELEGRAM ! TelegramImage(request.destination, file)
       else {
         val msg = s"No file found for 'month/${year}_$month'"
         CovidBot.ACTOR_TELEGRAM ! TelegramText(request.destination, msg)
       }
-    }
-    catch {
-      case _: Exception => CovidBot.ACTOR_TELEGRAM ! TelegramText(request.destination, "Failed!")
+    } catch {
+      case _: Exception =>
+        CovidBot.ACTOR_TELEGRAM ! TelegramText(request.destination, "Failed!")
     }
   }
 
@@ -194,7 +232,10 @@ class Graphs extends Actor {
 
   private def requestWeekGraph(request: RequestWeekGraph): Unit = {
     if (request.year.isDefined)
-      requestImage(request.destination, Paths.get(Graphs.DIR_WEEKS.toString, s"${request.year.get}.png").toFile)
+      requestImage(
+        request.destination,
+        Paths.get(Graphs.DIR_WEEKS.toString, s"${request.year.get}.png").toFile
+      )
     else
       requestImage(request.destination, Graphs.FILE_ROLLINGS_WEEKS)
   }

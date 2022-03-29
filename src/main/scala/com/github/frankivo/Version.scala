@@ -1,12 +1,8 @@
 package com.github.frankivo
 
-/**
- * Version info.
- */
+/** Version info. */
 object Version {
-  /**
-   * Version info.
-   * Should be overwritten by ci/cd.
-   */
+
+  /** Version info. Should be overwritten by ci/cd. */
   val VERSION_STRING = "unknown"
 }

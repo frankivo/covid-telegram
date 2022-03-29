@@ -7,24 +7,27 @@ import java.io.File
 import java.time.LocalDate
 import scala.io.BufferedSource
 
-/**
- * Reads file using CSVReader.
- */
+/** Reads file using CSVReader. */
 object FileReader {
-  /**
-   * Read daily data from a BufferedSource.
-   *
-   * @param source Data source.
-   * @return DayRecord with covid data.
-   */
-  def readDay(source: BufferedSource): DayRecord = readDay(CSVReader.open(source))
 
-  /**
-   * Read daily data from a File.
-   *
-   * @param file Data file.
-   * @return DayRecord with covid data.
-   */
+  /** Read daily data from a BufferedSource.
+    *
+    * @param source
+    *   Data source.
+    * @return
+    *   DayRecord with covid data.
+    */
+  def readDay(source: BufferedSource): DayRecord = readDay(
+    CSVReader.open(source)
+  )
+
+  /** Read daily data from a File.
+    *
+    * @param file
+    *   Data file.
+    * @return
+    *   DayRecord with covid data.
+    */
   def readDay(file: File): DayRecord = readDay(CSVReader.open(file))
 
   private def readDay(reader: CSVReader): DayRecord = {
