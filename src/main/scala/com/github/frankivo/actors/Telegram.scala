@@ -103,8 +103,7 @@ class Telegram extends Actor {
           case "/refresh" =>
             CovidBot.ACTOR_UPDATER ! UpdateAll(
               Some(c.destination),
-              if (Telegram.isOwner(c.sender)) c.parameter.getOrElse("0").toLong
-              else 0
+              getForceAmount(c)
             )
           case "/source" =>
             CovidBot.ACTOR_UPDATER ! RequestSource(c.destination)
@@ -115,6 +114,12 @@ class Telegram extends Actor {
           case e => send(TelegramText(c.destination, s"Unknown command: $e"))
         }
       })
+  }
+
+  private def getForceAmount(c: Command): Long = {
+    if (Telegram.isOwner(c.sender)) {
+      Try(c.parameter.get.toLong).getOrElse(0)
+    } else 0
   }
 
   private def versionText(): String = {
