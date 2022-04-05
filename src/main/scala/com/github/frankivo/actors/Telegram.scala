@@ -29,7 +29,12 @@ object Telegram {
   */
 class Telegram extends Actor {
 
-  case class Command(destination: Long, cmd: String, parameter: Option[String])
+  case class Command(
+      sender: Long,
+      destination: Long,
+      cmd: String,
+      parameter: Option[String]
+  )
 
   val bot = new TelegramBot(Telegram.apiKey)
   send(TelegramText(Telegram.ownerId, s"Hello World.\n" + versionText()))
@@ -67,6 +72,7 @@ class Telegram extends Actor {
       .map(u => {
         val split = u.text.split(" ")
         Command(
+          u.from().id(),
           destination = u.chat().id(),
           cmd = split.head.toLowerCase,
           parameter = Try(split(1)).toOption
