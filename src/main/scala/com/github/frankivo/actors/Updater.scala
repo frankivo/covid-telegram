@@ -58,7 +58,7 @@ class Updater extends Actor {
 
   private def onMessage(hasRun: Boolean): Receive = {
     case u: UpdateAll =>
-      val msg = refresh(hasRun)
+      val msg = refresh(hasRun, u.force)
       u.destination.foreach(dest =>
         CovidBot.ACTOR_TELEGRAM ! TelegramText(dest, msg)
       )
@@ -77,7 +77,7 @@ class Updater extends Actor {
     * @return
     *   Result message.
     */
-  private def refresh(hasRun: Boolean): String = {
+  private def refresh(hasRun: Boolean, force: Boolean): String = {
     val countBefore = fileCount()
     downloadAll()
 
