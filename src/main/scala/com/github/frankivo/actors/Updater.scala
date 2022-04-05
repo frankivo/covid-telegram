@@ -58,7 +58,7 @@ class Updater extends Actor {
 
   private def onMessage(hasRun: Boolean): Receive = {
     case u: UpdateAll =>
-      val msg = refresh(hasRun, u.force)
+      val msg = refresh(hasRun, u.forceAmount)
       u.destination.foreach(dest =>
         CovidBot.ACTOR_TELEGRAM ! TelegramText(dest, msg)
       )
@@ -77,13 +77,13 @@ class Updater extends Actor {
     * @return
     *   Result message.
     */
-  private def refresh(hasRun: Boolean, force: Boolean): String = {
+  private def refresh(hasRun: Boolean, forceAmount: Long): String = {
     val countBefore = fileCount()
-    if (force) deleteCurrent()
+    delete(forceAmount)
     downloadAll()
 
     val countAfter = fileCount()
-    val hasUpdates = force || countAfter > countBefore
+    val hasUpdates = forceAmount > 0 || countAfter > countBefore
 
     if (hasUpdates || !hasRun) {
       val daily = readDailyData()
@@ -104,11 +104,15 @@ class Updater extends Actor {
   def fileCount(): Long =
     Try(DIR_DATA.toFile.listFiles().length).getOrElse(0).toLong
 
-  private def deleteCurrent(): Unit = {
-    Seq(LocalDate.now(), LocalDate.now().minusDays(1))
+  private def delete(amount: Long): Unit = {
+    (0L until amount)
+      .map(LocalDate.now().minusDays(_))
       .map(date => Paths.get(DIR_DATA.toString, s"corrections-$date.csv"))
       .map(_.toFile)
-      .foreach(_.delete())
+      .foreach(f => {
+        println(s"Delete: $f")
+        f.delete()
+      })
   }
 
   private def downloadAll(): Unit = {

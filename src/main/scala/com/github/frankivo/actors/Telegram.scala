@@ -103,7 +103,8 @@ class Telegram extends Actor {
           case "/refresh" =>
             CovidBot.ACTOR_UPDATER ! UpdateAll(
               Some(c.destination),
-              Telegram.isOwner(c.sender)
+              if (Telegram.isOwner(c.sender)) c.parameter.getOrElse("0").toLong
+              else 0
             )
           case "/source" =>
             CovidBot.ACTOR_UPDATER ! RequestSource(c.destination)
