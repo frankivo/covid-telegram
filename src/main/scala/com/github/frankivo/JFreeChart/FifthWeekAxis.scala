@@ -6,12 +6,15 @@ import org.jfree.chart.axis.CategoryAxis
 import org.jfree.chart.text.{G2TextMeasurer, TextBlock, TextUtils}
 import org.jfree.chart.ui.RectangleEdge
 
-/**
- * A custom CategoryAxis.
- * Displays label only for every fifth week of the year.
- */
+/** A custom CategoryAxis. Displays label only for every fifth week of the year.
+  */
 class FifthWeekAxis extends CategoryAxis {
-  override def createLabel(category: Comparable[_], width: Float, edge: RectangleEdge, g2: Graphics2D): TextBlock = {
+  override def createLabel(
+      category: Comparable[_],
+      width: Float,
+      edge: RectangleEdge,
+      g2: Graphics2D
+  ): TextBlock = {
     TextUtils.createTextBlock(
       labelText(category),
       getTickLabelFont(category),
