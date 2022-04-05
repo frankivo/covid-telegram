@@ -1,13 +1,13 @@
 package com.github.frankivo.actors
 
 import akka.actor.Actor
-import com.github.frankivo.messages._
+import com.github.frankivo.messages.*
 import com.github.frankivo.{CovidBot, Version}
 import com.pengrad.telegrambot.model.{MessageEntity, Update}
 import com.pengrad.telegrambot.request.{SendMessage, SendPhoto}
 import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 /** Handles Telegram environment variables. */
@@ -101,7 +101,10 @@ class Telegram extends Actor {
               c.parameter
             )
           case "/refresh" =>
-            CovidBot.ACTOR_UPDATER ! UpdateAll(Some(c.destination))
+            CovidBot.ACTOR_UPDATER ! UpdateAll(
+              Some(c.destination),
+              Telegram.isOwner(c.sender)
+            )
           case "/source" =>
             CovidBot.ACTOR_UPDATER ! RequestSource(c.destination)
           case "/version" => send(TelegramText(c.destination, versionText()))
