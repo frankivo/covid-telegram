@@ -13,7 +13,7 @@ import com.github.frankivo.util.FileReader
 import sttp.client3.{HttpURLConnectionBackend, basicRequest}
 import sttp.model.Uri
 
-import java.io.FileOutputStream
+import java.io.{File, FileOutputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
 import java.time.{Duration, LocalDate}
@@ -79,10 +79,11 @@ class Updater extends Actor {
     */
   private def refresh(hasRun: Boolean, force: Boolean): String = {
     val countBefore = fileCount()
+    if (force) deleteCurrent()
     downloadAll()
 
     val countAfter = fileCount()
-    val hasUpdates = countAfter > countBefore
+    val hasUpdates = force || countAfter > countBefore
 
     if (hasUpdates || !hasRun) {
       val daily = readDailyData()
@@ -103,6 +104,13 @@ class Updater extends Actor {
   def fileCount(): Long =
     Try(DIR_DATA.toFile.listFiles().length).getOrElse(0).toLong
 
+  private def deleteCurrent(): Unit = {
+    Seq(LocalDate.now(), LocalDate.now().minusDays(1))
+      .map(date => Paths.get(DIR_DATA.toString, s"corrections-$date.csv"))
+      .map(_.toFile)
+      .foreach(_.delete())
+  }
+
   private def downloadAll(): Unit = {
     Updater
       .dateRange()
@@ -120,7 +128,7 @@ class Updater extends Actor {
     val url = Updater.URL_NATIONAL.format(date)
     val uri = Uri
       .parse(url)
-      .getOrElse(throw new Exception(s"Cannot parse URL: ${url} "))
+      .getOrElse(throw new Exception(s"Cannot parse URL: $url"))
 
     val fileName = Paths.get(DIR_DATA.toString, url.split("/").last)
 
