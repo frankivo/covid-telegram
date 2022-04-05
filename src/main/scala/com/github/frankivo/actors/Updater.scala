@@ -13,7 +13,7 @@ import com.github.frankivo.util.FileReader
 import sttp.client3.{HttpURLConnectionBackend, basicRequest}
 import sttp.model.Uri
 
-import java.io.FileOutputStream
+import java.io.{File, FileOutputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, Paths}
 import java.time.{Duration, LocalDate}
@@ -58,7 +58,7 @@ class Updater extends Actor {
 
   private def onMessage(hasRun: Boolean): Receive = {
     case u: UpdateAll =>
-      val msg = refresh(hasRun)
+      val msg = refresh(hasRun, u.forceAmount)
       u.destination.foreach(dest =>
         CovidBot.ACTOR_TELEGRAM ! TelegramText(dest, msg)
       )
@@ -77,12 +77,13 @@ class Updater extends Actor {
     * @return
     *   Result message.
     */
-  private def refresh(hasRun: Boolean): String = {
+  private def refresh(hasRun: Boolean, forceAmount: Long): String = {
     val countBefore = fileCount()
+    delete(forceAmount)
     downloadAll()
 
     val countAfter = fileCount()
-    val hasUpdates = countAfter > countBefore
+    val hasUpdates = forceAmount > 0 || countAfter > countBefore
 
     if (hasUpdates || !hasRun) {
       val daily = readDailyData()
@@ -103,6 +104,17 @@ class Updater extends Actor {
   def fileCount(): Long =
     Try(DIR_DATA.toFile.listFiles().length).getOrElse(0).toLong
 
+  private def delete(amount: Long): Unit = {
+    (0L until amount)
+      .map(LocalDate.now().minusDays(_))
+      .map(date => Paths.get(DIR_DATA.toString, s"corrections-$date.csv"))
+      .map(_.toFile)
+      .foreach(f => {
+        println(s"Delete: $f")
+        f.delete()
+      })
+  }
+
   private def downloadAll(): Unit = {
     Updater
       .dateRange()
@@ -120,7 +132,7 @@ class Updater extends Actor {
     val url = Updater.URL_NATIONAL.format(date)
     val uri = Uri
       .parse(url)
-      .getOrElse(throw new Exception(s"Cannot parse URL: ${url} "))
+      .getOrElse(throw new Exception(s"Cannot parse URL: $url"))
 
     val fileName = Paths.get(DIR_DATA.toString, url.split("/").last)
 

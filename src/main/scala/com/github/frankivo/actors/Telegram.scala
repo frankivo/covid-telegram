@@ -1,13 +1,13 @@
 package com.github.frankivo.actors
 
 import akka.actor.Actor
-import com.github.frankivo.messages._
+import com.github.frankivo.messages.*
 import com.github.frankivo.{CovidBot, Version}
 import com.pengrad.telegrambot.model.{MessageEntity, Update}
 import com.pengrad.telegrambot.request.{SendMessage, SendPhoto}
 import com.pengrad.telegrambot.{TelegramBot, UpdatesListener}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 /** Handles Telegram environment variables. */
@@ -29,7 +29,12 @@ object Telegram {
   */
 class Telegram extends Actor {
 
-  case class Command(destination: Long, cmd: String, parameter: Option[String])
+  case class Command(
+      sender: Long,
+      destination: Long,
+      cmd: String,
+      parameter: Option[String]
+  )
 
   val bot = new TelegramBot(Telegram.apiKey)
   send(TelegramText(Telegram.ownerId, s"Hello World.\n" + versionText()))
@@ -67,6 +72,7 @@ class Telegram extends Actor {
       .map(u => {
         val split = u.text.split(" ")
         Command(
+          u.from().id(),
           destination = u.chat().id(),
           cmd = split.head.toLowerCase,
           parameter = Try(split(1)).toOption
@@ -95,7 +101,11 @@ class Telegram extends Actor {
               c.parameter
             )
           case "/refresh" =>
-            CovidBot.ACTOR_UPDATER ! UpdateAll(Some(c.destination))
+            CovidBot.ACTOR_UPDATER ! UpdateAll(
+              Some(c.destination),
+              if (Telegram.isOwner(c.sender)) c.parameter.getOrElse("0").toLong
+              else 0
+            )
           case "/source" =>
             CovidBot.ACTOR_UPDATER ! RequestSource(c.destination)
           case "/version" => send(TelegramText(c.destination, versionText()))

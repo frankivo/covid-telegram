@@ -4,5 +4,7 @@ package com.github.frankivo.messages
   *
   * @param destination
   *   Message result to this destination on Telegram.
+  * @param forceAmount
+  *   Deletes amount of files and downloads again.
   */
-case class UpdateAll(destination: Option[Long])
+case class UpdateAll(destination: Option[Long], forceAmount: Long = 0)
